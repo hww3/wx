@@ -41,14 +41,11 @@ int commandToRespond = 0;
 
  volatile  unsigned long r_last_interrupt_time = 0;
  volatile unsigned long w_last_interrupt_time = 0;
- 
- volatile int windDir = 0;
 
  volatile unsigned long wind_time = 0;
  volatile unsigned long wind_interval = 0;
  
  volatile int16_t rainCount = 0;
- int windDirX;
 
 void windInterrupt()
 {
@@ -61,7 +58,6 @@ void windInterrupt()
   {
     wind_interval = (w_interrupt_time - wind_time);
     wind_time = w_interrupt_time; 
-    windDir = analogRead(0);
   }
   
   w_last_interrupt_time = w_interrupt_time; 
@@ -115,20 +111,39 @@ void loop()
 #ifdef DEBUG
  Serial.print(rainCount);
  Serial.print(' ');
+    
+ Serial.print(calcWindDir());
+ Serial.print(' ');
   
+ Serial.println(calcWindSpeed());
+#endif /* DEBUG */
+
+}
+
+int16_t calcWindSpeed()
+{
+  int16_t t;
+
+ double q;
+  
+ q = 1000.0/wind_interval*2.5;
+
+  t = (int16_t)(q*10);
+  return t;
+}
+
+int16_t calcWindDir()
+{
+  int16_t windDirX;
+  
+  int windDir = analogRead(0);
+ 
  if(windDir >= 959)
    windDirX = 0;
  else
    windDirX = (windDir+(64))/(128);
-    
- Serial.print(windDirX);
- Serial.print(' ');
- double q;
-  
- q = 1000.0/wind_interval*2.5;
-  
- Serial.println(q);
-#endif /* DEBUG */
+   
+ return windDirX;
 }
 
 #ifdef I2C
@@ -152,7 +167,7 @@ void requestEvent()
 {
   if(commandToRespond ==  SENSE_DIRECTION)
   {
-    sendBytes(0x0000);
+    sendBytes(calcWindDir());
   }
   else if(commandToRespond == SENSE_RAINFALL)
   {
@@ -160,12 +175,11 @@ void requestEvent()
   }
   else if(commandToRespond == SENSE_WINDSPEED)
   {
-    sendBytes((uint16_t)wind_interval);
+    sendBytes(calcWindSpeed());
   }
   else if(commandToRespond == SENSE_RESET)
   {
     rainCount = 0;
-    windDir = 0;
     wind_interval = 0;
     sendBytes(0x0000);
   }
