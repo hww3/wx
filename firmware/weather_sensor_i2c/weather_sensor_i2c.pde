@@ -1,7 +1,10 @@
 /*
 
   turn an atmega816 into a weather sensor controller
+  with i2c communications on address 0x20
 
+  mfg: davis instruments
+  
   rain gauge  int 0 - digital 2 / pin 4
   anemometer  int 1 - digital 3 / pin 5
   wind vane   analog 1 / pin 24
@@ -39,60 +42,44 @@ int commandToRespond = 0;
  volatile  unsigned long r_last_interrupt_time = 0;
  volatile unsigned long w_last_interrupt_time = 0;
  
- int windDir = 0;
+ volatile int windDir = 0;
 
  volatile unsigned long wind_time = 0;
  volatile unsigned long wind_interval = 0;
- volatile int16_t rainCount = 0;
  
-// note, we need to reset the wind interval if it's a certain time ago.
+ volatile int16_t rainCount = 0;
+ int windDirX;
+
 void windInterrupt()
 {
-   unsigned long w_interrupt_time = millis();
-  // Serial.println("INT");
-  // If interrupts come faster than 10ms, assume it's a bounce and ignore
-    int x;
+  unsigned long w_interrupt_time = millis();
+
+  int x;
    
+  // If interrupts come faster than 10ms, assume it's a bounce and ignore
   if (w_interrupt_time - w_last_interrupt_time > WIND_DEBOUNCE)
   {
-     // int x = digitalRead(SPEED_PIN);
-      
-    //  if(x == LOW)
-      {
-//     Serial.println("WIND");
-        wind_interval = (w_interrupt_time - wind_time);
-      }
-      wind_time = w_interrupt_time;
+    wind_interval = (w_interrupt_time - wind_time);
+    wind_time = w_interrupt_time; 
+    windDir = analogRead(0);
   }
   
-  w_last_interrupt_time = w_interrupt_time;
-  
+  w_last_interrupt_time = w_interrupt_time; 
 }
 
 void rainInterrupt()
 {
-   unsigned long r_interrupt_time = millis();
-  // Serial.println(r_interrupt_time);
-  // If interrupts come faster than 200ms, assume it's a bounce and ignore
-    int x;
+  unsigned long r_interrupt_time = millis();
+  int x;
    
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (r_interrupt_time - r_last_interrupt_time > RAIN_DEBOUNCE)
   {
- //   Serial.println(r_interrupt_time);
- //   x = digitalRead(RAIN_PIN);
-//    Serial.println(x);
- //   if(x == LOW)
-    {
      rainCount++;
-//     Serial.print("R");
-//     Serial.println(rainCount);
-    }
   }
   
   r_last_interrupt_time = r_interrupt_time;
 }
-
-
 
 void setup()
 {
@@ -109,37 +96,38 @@ void setup()
   pinMode(SPEED_PIN, INPUT);
   digitalWrite(SPEED_PIN, HIGH);
 
-
   attachInterrupt(1, rainInterrupt, FALLING);
   attachInterrupt(0, windInterrupt, FALLING);
 
 #ifdef DEBUG  
   Serial.begin(9600);
   Serial.println("GO!");
-#endif /* DEBUG */
-  
- // interrupts();
+#endif /* DEBUG */ 
 }
 
 void loop()
 {
-  delay(1000);
-  if((millis() - w_last_interrupt_time) > 5000) wind_interval = 0;
-
-  windDir= analogRead(0);
+ delay(1000);
+ 
+ // reset wind trigger period if more than 5 seconds since last interrupt
+ if((millis() - w_last_interrupt_time) > 5000) wind_interval = 0;
 
 #ifdef DEBUG
  Serial.print(rainCount);
-  Serial.print(' ');
-  Serial.print((windDir+(1024/16))/(1024/8));
-  Serial.print(' ');
-  double q;
+ Serial.print(' ');
   
-  int q2 = 0;
-//  if(wind_interval!=0)
-    q = 1000.0/wind_interval*2.5;
+ if(windDir >= 959)
+   windDirX = 0;
+ else
+   windDirX = (windDir+(64))/(128);
+    
+ Serial.print(windDirX);
+ Serial.print(' ');
+ double q;
   
-    Serial.println(q);
+ q = 1000.0/wind_interval*2.5;
+  
+ Serial.println(q);
 #endif /* DEBUG */
 }
 
@@ -188,7 +176,6 @@ void requestEvent()
   commandToRespond = 0;
 }
 
-
 void sendBytes(uint16_t x)
 {
   uint32_t y;
@@ -201,5 +188,4 @@ void sendBytes(uint16_t x)
     y >> 8;
   }
 }
-
 #endif /* I2C */
