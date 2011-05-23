@@ -17,7 +17,7 @@
 
 //#include <Wire.h>
 
-#define DEBUG 1
+//#define DEBUG 1
 #define I2C 1
 
 #ifdef I2C
@@ -97,7 +97,7 @@ void setup()
 
 #ifdef DEBUG  
   Serial.begin(9600);
-  Serial.println("GO!");
+  Serial.println("I2C WEATHER");
 #endif /* DEBUG */ 
 }
 
@@ -192,14 +192,20 @@ void requestEvent()
 
 void sendBytes(uint16_t x)
 {
+  uint8_t b[2] = {0x00, 0x00};
   uint32_t y;
-  char toSend;
-  y = x;
+  uint8_t toSend;
+
+  y = x;  
+
   for(int i=0; i < 2; i++)
   {
     toSend = y & 0xff;
-    Wire.send(toSend);
-    y >> 8;
+    Serial.print((unsigned int)toSend);
+    b[i] = toSend;
+    y >>= 8;
   }
+  
+  Wire.send(b, 2);
 }
 #endif /* I2C */
