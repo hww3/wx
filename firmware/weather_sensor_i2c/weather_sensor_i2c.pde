@@ -201,7 +201,9 @@ void sendBytes(uint16_t x)
   for(int i=0; i < 2; i++)
   {
     toSend = y & 0xff;
+#ifdef DEBUG
     Serial.print((unsigned int)toSend);
+#endif /* DEBUG */
     b[i] = toSend;
     y >>= 8;
   }
