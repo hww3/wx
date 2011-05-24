@@ -46,6 +46,8 @@ int commandToRespond = 0;
  volatile unsigned long wind_interval = 0;
  
  volatile int16_t rainCount = 0;
+ int count_since_wake = 0;
+ int count_since_boot = 0;
 
 void windInterrupt()
 {
@@ -80,6 +82,20 @@ void rainInterrupt()
 void setup()
 {
 
+  // First, let's shut things down and bring up the things we need.
+  power_all_disable();
+
+  power_timer0_enable();
+  power_timer1_enable();
+
+#ifdef I2C
+  power_twi_enable();
+#endif /* I2C */
+
+#ifdef DEBUG
+  power_usart0_enable();
+#endif /* DEBUG */
+
 #ifdef I2C
   Wire.begin(I2C_ADDRESS); // join i2c bus with address I2C_ADDRESS
   Wire.onReceive(receiveEvent);  // register event
@@ -104,7 +120,13 @@ void setup()
 void loop()
 {
  delay(1000);
- 
+ count_since_wake ++;
+ if(count_since_wake > 10)
+ {
+   set_sleep_mode(SLEEP_MODE_IDLE);
+   sleep_mode();
+   count_since_wake = 0;
+ } 
  // reset wind trigger period if more than 5 seconds since last interrupt
  if((millis() - w_last_interrupt_time) > 5000) wind_interval = 0;
 
