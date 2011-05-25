@@ -9,7 +9,7 @@
  ******************************************************************************/
 
 /**********************************************************
- * Initialize the sensor based on the specified type.
+ * Initialize the sensor.
  **********************************************************/
 WeatherSensorsI2C::WeatherSensorsI2C() {
     Wire.begin();
@@ -83,10 +83,11 @@ uint16_t WeatherSensorsI2C::readSensor(uint8_t command) {
 
     uint16_t result;
 
-    Wire.beginTransmission(eWeatherSensorAddress);   //begin
-    Wire.send(command);                      //send the pointer location
+    Wire.beginTransmission(eWeatherSensorAddress);
+    Wire.send(command);
+    Wire.endTransmission();
+
     delay(readDelay);
-    Wire.endTransmission();                  //end
 
     Wire.requestFrom(eWeatherSensorAddress, 2);
     while(Wire.available() < 2) {
