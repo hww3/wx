@@ -15,6 +15,8 @@
 
 */
 
+#include "PinChangeIntConfig.h"
+#include <PinChangeInt.h>
 #include <avr/power.h>
 #include <avr/sleep.h>
 
@@ -27,7 +29,7 @@
 #endif
 
 #define RAIN_DEBOUNCE 150
-#define WIND_DEBOUNCE 20
+#define WIND_DEBOUNCE 25
 
 #define SENSE_WINDSPEED 0x01
 #define SENSE_MAX_WINDSPEED 0x05
@@ -67,7 +69,7 @@ void windInterrupt()
   }
   
   w_last_interrupt_time = w_interrupt_time; 
-  if(count_since_wake > 3) count_since_wake = 0;
+//  if(count_since_wake > 2) count_since_wake = 0;
 }
 
 void rainInterrupt()
@@ -77,9 +79,7 @@ void rainInterrupt()
    
   // If interrupts come faster than 200ms, assume it's a bounce and ignore
   if (r_interrupt_time - r_last_interrupt_time > RAIN_DEBOUNCE)
-  {
      rainCount++;
-  }
   
   r_last_interrupt_time = r_interrupt_time;
 }
@@ -90,8 +90,7 @@ void setup()
   // First, let's shut things down and bring up the things we need.
   power_all_disable();
   power_timer0_enable();
-  power_timer1_enable();
-  power_adc_enable();
+  //power_timer1_enable();
 
 #ifdef I2C
   power_twi_enable();
@@ -113,8 +112,8 @@ void setup()
   pinMode(SPEED_PIN, INPUT);
   digitalWrite(SPEED_PIN, HIGH);
 
-  attachInterrupt(1, rainInterrupt, FALLING);
-  attachInterrupt(0, windInterrupt, FALLING);
+  PCattachInterrupt(RAIN_PIN, rainInterrupt, FALLING);
+  PCattachInterrupt(SPEED_PIN, windInterrupt, FALLING);
 
 #ifdef DEBUG  
   Serial.begin(9600);
@@ -124,50 +123,51 @@ void setup()
 
 void loop()
 {
- delay(1000);
- count_since_wake ++;
- if(count_since_wake > 5)
+ // reset wind trigger period if more than 5 seconds since last interrupt
+ if((millis() - w_last_interrupt_time) > 2000) wind_interval = 0;
+
+// delay(5);
+// count_since_wake ++;
+// if(count_since_wake > 10)
  {
 
 #ifdef DEBUG  
   Serial.println("Sleeping");
   delay(100);
 #endif /* DEBUG */
-   set_sleep_mode(SLEEP_MODE_IDLE);
-   power_timer0_disable();
-   power_timer1_disable();
+   set_sleep_mode(SLEEP_MODE_PWR_SAVE);
+   clock_prescale_set(clock_div_16);
+//   power_timer0_disable();
+//   power_timer1_disable();
 #ifdef DEBUG  
    power_usart0_disable();
 #endif /* DEBUG */
-   power_adc_disable();
+//   power_adc_disable();
 
-   attachInterrupt(1, rainInterrupt, FALLING);
-   attachInterrupt(0, windInterrupt, FALLING);
-   w_last_interrupt_time = 0;
-   r_last_interrupt_time = 0;
-   wind_interval = 0;
+  PCattachInterrupt(RAIN_PIN, rainInterrupt, FALLING);
+  PCattachInterrupt(SPEED_PIN, windInterrupt, FALLING);
+
    sleep_enable();
+//   w_last_interrupt_time = 0;
+//   r_last_interrupt_time = 0;
+//   wind_interval = 0;
    sleep_mode();
    sleep_disable();
+   clock_prescale_set(clock_div_1);
 
-   power_timer0_enable();
-   power_timer1_enable();
+//   power_timer0_enable();
+//   power_timer1_enable();
 #ifdef DEBUG  
    power_usart0_enable();
 #endif /* DEBUG */
-   power_adc_enable();
+//   power_adc_enable();
 
-  attachInterrupt(1, rainInterrupt, FALLING);
-  attachInterrupt(0, windInterrupt, FALLING);
-   
+// count_since_wake = 0;   
 #ifdef DEBUG  
   Serial.println("Awake");
 #endif /* DEBUG */
-   count_since_wake = 0;
  } 
- // reset wind trigger period if more than 5 seconds since last interrupt
- if((millis() - w_last_interrupt_time) > 5000) wind_interval = 0;
-
+ 
 #ifdef DEBUG
  Serial.print(rainCount);
  Serial.print(' ');
@@ -208,8 +208,13 @@ int16_t calcWindSpeed()
 int16_t calcWindDir()
 {
   int16_t windDirX;
+
+  delay(10);
+  power_adc_enable();
   
   int windDir = analogRead(0);
+
+  power_adc_disable();
  
  if(windDir >= 959)
    windDirX = 0;
@@ -223,6 +228,8 @@ int16_t calcWindDir()
 void receiveEvent(int howMany)
 {
   int i = 0;
+   // reset wind trigger period if more than 5 seconds since last interrupt
+ if((millis() - w_last_interrupt_time) > 2000) wind_interval = 0;
 
   // drain the receive buffer, but only use the first byte as the request.  
   while(Wire.available())
@@ -238,6 +245,9 @@ void receiveEvent(int howMany)
 // all requests return 16
 void requestEvent()
 {
+   // reset wind trigger period if more than 5 seconds since last interrupt
+ if((millis() - w_last_interrupt_time) > 2000) wind_interval = 0;
+
   if(commandToRespond ==  SENSE_DIRECTION)
   {
     sendBytes(calcWindDir());
