@@ -51,20 +51,25 @@ int commandToRespond = 0;
  volatile unsigned long max_wind_interval = 0;
  
  volatile int16_t rainCount = 0;
- int count_since_wake = 0;
- int count_since_boot = 0;
-
+volatile int last_awoke = 0;
+ 
 void windInterrupt()
 {
+last_awoke = 0;
+    power_timer0_enable();
+
   unsigned long w_interrupt_time = millis();
   int x;
    
   // If interrupts come faster than 10ms, assume it's a bounce and ignore
   if (w_interrupt_time - w_last_interrupt_time > WIND_DEBOUNCE)
   {
+    if(wind_time)
+ //   {
     wind_interval = (w_interrupt_time - wind_time);
-    if(wind_interval && (!max_wind_interval || (wind_interval < max_wind_interval)))
+    if(wind_interval && (!max_wind_interval || (max_wind_interval > wind_interval)))
       max_wind_interval = wind_interval;
+//    }
     wind_time = w_interrupt_time; 
   }
   
@@ -74,6 +79,8 @@ void windInterrupt()
 
 void rainInterrupt()
 {
+    power_timer0_enable();
+last_awoke = 0;
   unsigned long r_interrupt_time = millis();
   int x;
    
@@ -86,11 +93,12 @@ void rainInterrupt()
 
 void setup()
 {
+   clock_prescale_set(clock_div_8);
 
   // First, let's shut things down and bring up the things we need.
   power_all_disable();
   power_timer0_enable();
-  //power_timer1_enable();
+//  power_timer1_enable();
 
 #ifdef I2C
   power_twi_enable();
@@ -112,6 +120,29 @@ void setup()
   pinMode(SPEED_PIN, INPUT);
   digitalWrite(SPEED_PIN, HIGH);
 
+  pinMode(4, INPUT);
+  digitalWrite(4, HIGH);
+  pinMode(5, INPUT);
+  digitalWrite(5, HIGH);
+  pinMode(6, INPUT);
+  digitalWrite(6, HIGH);
+  pinMode(7, INPUT);
+  digitalWrite(7, HIGH);
+  pinMode(8, INPUT);
+  digitalWrite(8, HIGH);
+  pinMode(9, INPUT);
+  digitalWrite(9, HIGH);
+  pinMode(10, INPUT);
+  digitalWrite(10, HIGH);
+  pinMode(11, INPUT);
+  digitalWrite(11, HIGH);
+  pinMode(12, INPUT);
+  digitalWrite(12, HIGH);
+  pinMode(13, INPUT);
+  digitalWrite(13, HIGH);
+  pinMode(14, INPUT);
+  digitalWrite(14, HIGH);
+
   PCattachInterrupt(RAIN_PIN, rainInterrupt, FALLING);
   PCattachInterrupt(SPEED_PIN, windInterrupt, FALLING);
 
@@ -126,46 +157,39 @@ void loop()
  // reset wind trigger period if more than 5 seconds since last interrupt
  if((millis() - w_last_interrupt_time) > 2000) wind_interval = 0;
 
-// delay(5);
-// count_since_wake ++;
-// if(count_since_wake > 10)
+ if( ++last_awoke > 180)  // sleep more deeply
  {
-
-#ifdef DEBUG  
+   #ifdef DEBUG  
   Serial.println("Sleeping");
   delay(100);
 #endif /* DEBUG */
    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-   clock_prescale_set(clock_div_16);
-//   power_timer0_disable();
-//   power_timer1_disable();
 #ifdef DEBUG  
    power_usart0_disable();
 #endif /* DEBUG */
-//   power_adc_disable();
-
-  PCattachInterrupt(RAIN_PIN, rainInterrupt, FALLING);
-  PCattachInterrupt(SPEED_PIN, windInterrupt, FALLING);
-
+   delay(20);
    sleep_enable();
-//   w_last_interrupt_time = 0;
-//   r_last_interrupt_time = 0;
-//   wind_interval = 0;
+   w_last_interrupt_time = 0;
+   r_last_interrupt_time = 0;
+   wind_time = 0;
+   //wind_interval = 0;
    sleep_mode();
    sleep_disable();
-   clock_prescale_set(clock_div_1);
-
-//   power_timer0_enable();
-//   power_timer1_enable();
+   last_awoke = 0;
 #ifdef DEBUG  
    power_usart0_enable();
 #endif /* DEBUG */
-//   power_adc_enable();
-
-// count_since_wake = 0;   
 #ifdef DEBUG  
   Serial.println("Awake");
 #endif /* DEBUG */
+ }
+ else // just save some power
+ {
+   set_sleep_mode(SLEEP_MODE_IDLE);
+   delay(1);
+   sleep_enable();
+   sleep_mode();
+   sleep_disable();
  } 
  
 #ifdef DEBUG
@@ -245,6 +269,7 @@ void receiveEvent(int howMany)
 // all requests return 16
 void requestEvent()
 {
+  last_awoke = 0;
    // reset wind trigger period if more than 5 seconds since last interrupt
  if((millis() - w_last_interrupt_time) > 2000) wind_interval = 0;
 
