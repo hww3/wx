@@ -7,11 +7,18 @@ typedef enum {
     eWeatherSensorAddress = 0x20,
 } WEATHER_SENSOR_T;
 
+#define SENSE_WINDSPEED 0x01
+#define SENSE_MAX_WINDSPEED 0x05
+#define SENSE_DIRECTION 0x02
+#define SENSE_RAINFALL  0x03
+#define SENSE_RESET     0x04
+
 typedef enum {
     eResetCmd        = 0x04,
     eRainCountCmd  = 0x03,
     eWindSpeedCmd      = 0x01,
     eWindDirCmd = 0x02,
+	eMaxWindSpeedCmd = 0x05
 } WEATHER_SENSOR_CMD_T;
 
 class WeatherSensorsI2C
@@ -21,15 +28,17 @@ class WeatherSensorsI2C
 
     float calculateRainCustomary(uint16_t sensorValue);
 	float calculateSpeedCustomary(uint16_t sensorValue);
-	String calculateDirection(uint16_t sensorValue);
+	char * calculateDirection(uint16_t sensorValue);
     uint16_t readSensor(uint8_t command);
 
   public:
-    WeatherSensorsI2C(uint8_t sensorType);
+    WeatherSensorsI2C();
     void SetReadDelay(uint16_t delay);
 	float GetSpeedMPH(void);
 	float GetRainfallInches(void);
-	String GetWindDirection(void);
+	float GetMaxSpeedMPH(void);
+	char * GetWindDirection(void);
+	void ResetCounters(void);
 
 };
 

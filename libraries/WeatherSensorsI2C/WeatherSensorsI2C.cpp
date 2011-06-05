@@ -2,6 +2,7 @@
 #include <inttypes.h>
 #include <Wire.h>
 #include <wiring.h>
+#include <string.h>
 #include "WeatherSensorsI2C.h"
 
 /******************************************************************************
@@ -30,7 +31,7 @@ char * WeatherSensorsI2C::GetWindDirection(void) {
 
     char * direction;
 
-    direction = calculateDirection(readSensor(eWindDirectionCmd));
+    direction = calculateDirection(readSensor(eWindDirCmd));
 
     return direction;
 }
@@ -45,7 +46,22 @@ float WeatherSensorsI2C::GetSpeedMPH(void) {
 	
     float speed;
 	
-    temperature = calculateSpeedCustomary(readSensor(eTempHoldCmd));
+    speed = calculateSpeedCustomary(readSensor(eWindSpeedCmd));
+	
+    return speed;
+}
+
+/**********************************************************
+ * GetMaxSpeedMPH
+ *  Gets the maximum observed wind speed from the sensor.
+ *
+ * @return float - The wind speed in miles per hour
+ **********************************************************/
+float WeatherSensorsI2C::GetMaxSpeedMPH(void) {
+	
+    float speed;
+	
+    speed = calculateSpeedCustomary(readSensor(eMaxWindSpeedCmd));
 	
     return speed;
 }
@@ -61,9 +77,19 @@ float WeatherSensorsI2C::GetRainfallInches(void) {
 	
     float inches;
 	
-    temperature = calculateRainCustomary(readSensor(eRainCountCmd));
+    inches = calculateRainCustomary(readSensor(eRainCountCmd));
 	
     return inches;
+}
+
+/**********************************************************
+ * ResetCounters
+ *  Reset the rain and speed counters.
+ *
+ **********************************************************/
+void WeatherSensorsI2C::ResetCounters(void)
+{
+	readSensor(eResetCmd);
 }
 
 /**********************************************************
@@ -143,7 +169,7 @@ char * WeatherSensorsI2C::calculateDirection(uint16_t sensorValue)
  		  dir = strdup("NW");
   		  break;
 		default:
-		  dir = strdup("--")
+		  dir = strdup("--");
 	}
 	
 	return dir;
