@@ -45,8 +45,9 @@ char * WeatherSensorsI2C::GetWindDirection(void) {
 float WeatherSensorsI2C::GetSpeedMPH(void) {
 	
     float speed;
-	
-    speed = calculateSpeedCustomary(readSensor(eWindSpeedCmd));
+	uint16_t v;
+	v = readSensor(eWindSpeedCmd);
+    speed = calculateSpeedCustomary(v);
 	
     return speed;
 }
@@ -121,8 +122,8 @@ uint16_t WeatherSensorsI2C::readSensor(uint8_t command) {
     }
 
     //Store the result
-    result = ((Wire.receive()) << 8);
-    result += Wire.receive();
+    result = Wire.receive();
+    result += ((Wire.receive()) << 8);
     return result;
 }
 

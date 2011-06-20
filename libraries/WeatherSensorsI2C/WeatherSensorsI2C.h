@@ -29,10 +29,10 @@ class WeatherSensorsI2C
     float calculateRainCustomary(uint16_t sensorValue);
 	float calculateSpeedCustomary(uint16_t sensorValue);
 	char * calculateDirection(uint16_t sensorValue);
-    uint16_t readSensor(uint8_t command);
 
   public:
     WeatherSensorsI2C();
+    uint16_t readSensor(uint8_t command);
     void SetReadDelay(uint16_t delay);
 	float GetSpeedMPH(void);
 	float GetRainfallInches(void);

@@ -41,6 +41,15 @@
 #define SPEED_PIN 2
 #define VANE_PIN 24
 
+// the following are used in setup() to disable the internal analog reference voltage.
+
+//#ifndef cbi
+//#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+//#endif
+//#ifndef sbi
+//#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+//#endif 
+
 int commandToRespond = 0;
 
  volatile  unsigned long r_last_interrupt_time = 0;
@@ -100,6 +109,11 @@ void setup()
   power_timer0_enable();
 //  power_timer1_enable();
 
+//  cbi(ADMUX, REFS1); //clear REFS1 bit (0)
+//  cbi(ADMUX, REFS0); //clear REFS0 bit (0)
+ 
+  analogReference(EXTERNAL);
+
 #ifdef I2C
   power_twi_enable();
 #endif /* I2C */
@@ -120,12 +134,17 @@ void setup()
   pinMode(SPEED_PIN, INPUT);
   digitalWrite(SPEED_PIN, HIGH);
 
-  pinMode(4, INPUT);
-  digitalWrite(4, HIGH);
+// we use pin 6 (digital 4) to drive the windvane, so we normally want it off.
+  pinMode(4, OUTPUT);
+  digitalWrite(4, LOW);
+//  pinMode(4, INPUT);
+//  digitalWrite(4, HIGH);
   pinMode(5, INPUT);
   digitalWrite(5, HIGH);
   pinMode(6, INPUT);
   digitalWrite(6, HIGH);
+
+
   pinMode(7, INPUT);
   digitalWrite(7, HIGH);
   pinMode(8, INPUT);
@@ -236,7 +255,11 @@ int16_t calcWindDir()
   delay(10);
   power_adc_enable();
   
+  digitalWrite(4, HIGH);
+  analogReference(EXTERNAL);
+  delay(3);
   int windDir = analogRead(0);
+  digitalWrite(4, LOW); 
 
   power_adc_disable();
  
