@@ -16,6 +16,26 @@ import ADT.Struct;
   Item luxb = lWord();
   Item luxc = lWord();
 
+void insert(Sql.Sql db, string table)
+{
+ mapping v = ([]);
+ foreach(indices(this);;string i)
+  {  
+     mixed val;
+     if(i=="cookie") continue;
+     else if(i=="temp") val = (this[i])/10.0;
+     else if(this[i] == "\0\0") val = "--";
+     else val = this[i];
+     v[":" + i] = val;
+}
+werror("%O\n", mkmapping(indices(this), values(this)));
+  db->query("INSERT INTO " + table + " (updated, location, uptime, "
+    "temperature, pressure, humidity, temperature_b, rainfall, windspeed, "
+    "direction, wind_gusts, luminosity_a, luminosity_b, luminosity_c) "
+    "VALUES(DATETIME('now'), 'remote1', :uptime, :temp, :pres, :relhx, "
+    ":tempb, :rainfall, :windspeed, :winddir, :maxwindspeed, :luxa, "
+    ":luxb, :luxc)", v);
+}
 // little endian word
 class Float
 {

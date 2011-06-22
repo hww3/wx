@@ -16,4 +16,5 @@ void got_packet(mapping packet)
   write("got packet: %O\n", packet->data);
   object wxr = .WXR1(packet->data);
   write("struct: %O\n", wxr);
+  wxr->insert(db, "observations");
 }
