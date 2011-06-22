@@ -1,0 +1,18 @@
+
+CREATE TABLE observations (
+
+updated datetime,
+location char(10),
+uptime int,
+temperature number,
+pressure number,
+humidity number,
+temperature_b number,
+rainfall number,
+windspeed number,
+direction char(2),
+wind_gusts number,
+luminosity_a number,
+luminosity_b number,
+luminosity_c number
+);
