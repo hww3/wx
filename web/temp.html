@@ -1,0 +1,7 @@
+<diagram type="line" width="300" height="275">
+<yaxis start='80000' stop='110000'/>
+<data form="column">
+<sqltable type="text" ascii="true" 
+query="SELECT rowid,pressure FROM observations WHERE updated > DATETIME('now', '-1 day') ORDER BY updated asc"/>
+</data>
+</diagram>
