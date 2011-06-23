@@ -23,6 +23,12 @@
       dojo.require("dojox.charting.DataSeries");
       dojo.require("dojox.charting.themes.Tom");
       // specify a single parameter function that produces labels from date numbers.
+function updateCharts()
+{
+dstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24aggdata.html"});
+chart1.
+}
+
 function getClockTime(now)
 {
    var hour   = now.getHours();
@@ -56,7 +62,7 @@ function getClockTime(now)
            return d;
       }
        dojo.addOnLoad(function(){
-var pstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24presdata.html"});
+var dstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24aggdata.html"});
         var chart1 = new dojox.charting.Chart2D("preschart", {title: "Barometric Pressure (24 Hour)",
   titleGap: 25,
   titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"
@@ -67,11 +73,10 @@ var pstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localh
         chart1.setTheme(dojox.charting.themes.Tom);
         chart1.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});
         chart1.addAxis("y", {vertical: true, title: "Pascals",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });
-        var series = new dojox.charting.DataSeries(pstore, {query: {updated: "*"}}, {x: "updated", y:"pressure"});
+        var series = new dojox.charting.DataSeries(dstore, {query: {updated: "*"}}, {x: "updated", y:"pressure"});
         chart1.addSeries("Pressure", series);
 chart1.render();
 
-var tstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24tempdata.html"});                                                                        
         var chart2 = new dojox.charting.Chart2D("tempchart", {title: "Temperature (24 Hour)",                                                                                
   titleGap: 25,                                                                                                                                                                      
   titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"                                                                                                               
@@ -82,11 +87,10 @@ var tstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localh
         chart2.setTheme(dojox.charting.themes.Tom);                                                                                                                                  
         chart2.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});                   
         chart2.addAxis("y", {vertical: true, title: "Degrees Celsius", titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" }); 
-        var series = new dojox.charting.DataSeries(tstore, {query: {updated: "*"}}, {x: "updated", y:"temperature"});                                                                   
+        var series = new dojox.charting.DataSeries(dstore, {query: {updated: "*"}}, {x: "updated", y:"temperature"});                                                                   
         chart2.addSeries("Temperature", series);                                                                                                                                        
 chart2.render();                                                                                                                                                                     
 
-var hstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24hxdata.html"});                                                                        
         var chart3 = new dojox.charting.Chart2D("hxchart", {title: "Relative Humidity (24 Hour)",                                                                                        
   titleGap: 25,                                                                                                                                                                      
   titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"                                                                                                               
@@ -97,12 +101,13 @@ var hstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localh
         chart3.setTheme(dojox.charting.themes.Tom);                                                                                                                                  
         chart3.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});                   
         chart3.addAxis("y", {vertical: true, title: "Percent", titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });                                      
-        var series = new dojox.charting.DataSeries(hstore, {query: {updated: "*"}}, {x: "updated", y:"humidity"});                                                                
+        var series = new dojox.charting.DataSeries(dstore, {query: {updated: "*"}}, {x: "updated", y:"humidity"});                                                                
         chart3.addSeries("Humidity", series);                                                                                                                                     
 chart3.render();              
 
       });
     </script>
+<button onclick="updateCharts()">Update</button>
     <div id="tempchart" style="width: 850px; height: 300px;"></div>
     <div id="preschart" style="width: 850px; height: 300px;"></div>
     <div id="hxchart" style="width: 850px; height: 300px;"></div>
