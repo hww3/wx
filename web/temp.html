@@ -1,7 +1,113 @@
-<diagram type="line" width="300" height="275">
-<yaxis start='80000' stop='110000'/>
-<data form="column">
-<sqltable type="text" ascii="true" 
-query="SELECT rowid,pressure FROM observations WHERE updated > DATETIME('now', '-1 day') ORDER BY updated asc"/>
-</data>
-</diagram>
+	<script type="text/javascript">
+		var djConfig = {
+			isDebug: true,
+			parseOnLoad: true,
+			baseUrl: './',
+			modulePaths: {
+				'my': 'my'
+			}
+		};
+	</script>
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" type="text/javascript"></script>
+        <xiscript type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></xiscript>
+
+<script>
+        dojo.ready(function(){
+        });
+    </script>
+
+    <script type="text/javascript">
+    //  dojo.require("my.Chart2D");
+      dojo.require("dojox.charting.Chart2D");
+      dojo.require("dojox.data.CsvStore");
+      dojo.require("dojox.charting.DataSeries");
+      dojo.require("dojox.charting.themes.Tom");
+      // specify a single parameter function that produces labels from date numbers.
+function getClockTime(now)
+{
+   var hour   = now.getHours();
+   var minute = now.getMinutes();
+   var second = now.getSeconds();
+   var ap = "AM";
+   if (hour   > 11) { ap = "PM";             }
+   if (hour   > 12) { hour = hour - 12;      }
+   if (hour   == 0) { hour = 12;             }
+   if (hour   < 10) { hour   = "0" + hour;   }
+   if (minute < 10) { minute = "0" + minute; }
+   if (second < 10) { second = "0" + second; }
+   var timeString = hour +
+                    ':' +
+                    minute +
+                    ':' +
+                    second +
+                    " " +
+                    ap;
+   return timeString;
+} // function getClockTime()
+     
+ function labelfTime(o)
+      {
+           var dt = new Date();
+           dt.setTime(o);
+           var d = /*
+			dt.getMonth()+1)+"/"+dt.getDate()+"/"+dt.getFullYear() + " " +i
+			*/ getClockTime(dt);
+//           console.log(o+"="+d);
+           return d;
+      }
+       dojo.addOnLoad(function(){
+var pstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24presdata.html"});
+        var chart1 = new dojox.charting.Chart2D("preschart", {title: "Barometric Pressure (24 Hour)",
+  titleGap: 25,
+  titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"
+});
+          chart1.addPlot("default", 
+          { type: "Default" , title: "Air Pressure", hMajorLines: true} );
+        // set up axis and specify label function for dates
+        chart1.setTheme(dojox.charting.themes.Tom);
+        chart1.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});
+        chart1.addAxis("y", {vertical: true, title: "Pascals",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });
+        var series = new dojox.charting.DataSeries(pstore, {query: {updated: "*"}}, {x: "updated", y:"pressure"});
+        chart1.addSeries("Pressure", series);
+chart1.render();
+
+var tstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24tempdata.html"});                                                                        
+        var chart2 = new dojox.charting.Chart2D("tempchart", {title: "Temperature (24 Hour)",                                                                                
+  titleGap: 25,                                                                                                                                                                      
+  titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"                                                                                                               
+});                                                                                                                                                                                  
+          chart2.addPlot("default",                                                                                                                                                  
+          { type: "Default" , title: "Temperature", hMajorLines: true} );                                                                                                           
+        // set up axis and specify label function for dates                                                                                                                          
+        chart2.setTheme(dojox.charting.themes.Tom);                                                                                                                                  
+        chart2.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});                   
+        chart2.addAxis("y", {vertical: true, title: "Degrees Celsius", titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" }); 
+        var series = new dojox.charting.DataSeries(tstore, {query: {updated: "*"}}, {x: "updated", y:"temperature"});                                                                   
+        chart2.addSeries("Temperature", series);                                                                                                                                        
+chart2.render();                                                                                                                                                                     
+
+var hstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24hxdata.html"});                                                                        
+        var chart3 = new dojox.charting.Chart2D("hxchart", {title: "Relative Humidity (24 Hour)",                                                                                        
+  titleGap: 25,                                                                                                                                                                      
+  titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"                                                                                                               
+});                                                                                                                                                                                  
+          chart3.addPlot("default",                                                                                                                                                  
+          { type: "Default" , title: "Relative Humidity", hMajorLines: true} );                                                                                                            
+        // set up axis and specify label function for dates                                                                                                                          
+        chart3.setTheme(dojox.charting.themes.Tom);                                                                                                                                  
+        chart3.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});                   
+        chart3.addAxis("y", {vertical: true, title: "Percent", titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });                                      
+        var series = new dojox.charting.DataSeries(hstore, {query: {updated: "*"}}, {x: "updated", y:"humidity"});                                                                
+        chart3.addSeries("Humidity", series);                                                                                                                                     
+chart3.render();              
+
+      });
+    </script>
+    <div id="tempchart" style="width: 850px; height: 300px;"></div>
+    <div id="preschart" style="width: 850px; height: 300px;"></div>
+    <div id="hxchart" style="width: 850px; height: 300px;"></div>
+<pre>
+</pre>
+</body>
+</html>
+
