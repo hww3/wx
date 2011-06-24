@@ -15,7 +15,7 @@ LibHumidity humidity = LibHumidity(0);
 WeatherSensorsI2C ws =  WeatherSensorsI2C();
 
 MilliTimer timer;
-int uptime;
+uint16_t uptime;
 
 void setup() 
 { 
@@ -42,7 +42,7 @@ void loop()
                 char cookieb;
                 char cookiec;
                 char cookied;
-                int16_t uptime; 
+                uint16_t uptime; 
                 int16_t temp; 
                 int32_t pres;  
                 float relhx; 
@@ -107,10 +107,10 @@ void loop()
   
   char * dir = ws.GetWindDirection();
   
-  payload.winddira = dir[1];
+  payload.winddira = dir[0];
 
   if(dir[1])
-    payload.winddirb = dir[2];
+    payload.winddirb = dir[1];
   else
     payload.winddirb = 0;
     

@@ -118,7 +118,7 @@ void loop() {
      Serial.print(data->windspeed);
      Serial.print(" / ");
      Serial.print(data->winddira);
-if(data->winddirb)
+//if(data->winddirb)
      Serial.print(data->winddirb);
      Serial.print(data->maxwindspeed);
      Serial.print(" / ");
@@ -137,7 +137,7 @@ if(data->winddirb)
 
   ether.udpPrepare((DNSCLIENT_SRC_PORT_H << 8) | dnstid_l,
                                                 dip, WX_DATA_PORT);
-  memset(gPB + UDP_DATA_P, 0, sizeof(struct payload));
+  memset(gPB + UDP_DATA_P, 1, sizeof(struct payload));
 
   bufPtr = gPB + UDP_DATA_P;
   addPayload(pl);

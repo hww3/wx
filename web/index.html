@@ -1,1 +1,26 @@
+<script type="text/javascript">
+	var djConfig = {
+		isDebug: true,
+		parseOnLoad: true,
+		baseUrl: './',
+		modulePaths: {
+			'my': 'my'
+		}
+	};
+</script>
+<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" type="text/javascript"></script>
+<script type="text/javascript" src="js/amq_jquery_adapter.js"></script>
+<script type="text/javascript" src="js/amq.js"></script>
+
 <sqltable query="select * from observations order by updated desc limit 25"/>
+
+<script type="text/javascript">
+
+dojo.ready(function(){
+
+org.activemq.Amq.init({ uri: '/web/queue_reader.pike', logging: true, timeout: 45, clientId:(new Date()).getTime().toString() });
+
+
+				});
+
+</script>
