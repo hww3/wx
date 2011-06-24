@@ -51,7 +51,7 @@ org.activemq.AmqAdapter = {
 		if (options.method == 'post') {
 			dojo.xhrPost({
 				url: uri,
-				handleAs: "xml",
+			//	handleAs: "xml",
 				postData: options.data,
 				headers: options.headers,
 				load : options.success ? options.success : function() {},
