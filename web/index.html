@@ -15,12 +15,18 @@
 <sqltable query="select * from observations order by updated desc limit 25"/>
 
 <script type="text/javascript">
+var amq;
+
+function wunderbarHandler(message)
+{
+	alert(message);
+}
 
 dojo.ready(function(){
 
-org.activemq.Amq.init({ uri: '/PMQ/web/queue_reader.pike', logging: true, timeout: 45, clientId:(new Date()).getTime().toString() });
+amq = org.activemq.Amq.init({ uri: '/PMQ/web/queue_reader.pike', logging: true, timeout: 45, clientId:(new Date()).getTime().toString() });
 
-
+amq.addListener('wx', 'wunderbar', wunderbarHandler);
 				});
 
 </script>
