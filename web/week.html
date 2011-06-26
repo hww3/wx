@@ -22,9 +22,6 @@
       dojo.require("dojox.charting.DataSeries");
       dojo.require("dojox.charting.themes.Tom");
       // specify a single parameter function that produces labels from date numbers.
-function updateCharts()
-{
-}
 
 function makeChart(divname, source, field, chartname, units)
 {
@@ -95,9 +92,8 @@ weekday[6]="Sat";
     chart2.render();
     chart3.render();
     chart4.render();
-
+});
 </script>
-<button onclick="updateCharts()">Update</button>
     <div id="tempchart" style="width: 850px; height: 300px;"></div>
     <div id="preschart" style="width: 850px; height: 300px;"></div>
     <div id="hxchart" style="width: 850px; height: 300px;"></div>
