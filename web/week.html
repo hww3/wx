@@ -46,6 +46,16 @@ function makeChart(divname, source, field, chartname, units)
 
 function getClockTime(now)
 {
+var weekday=new Array(7);
+weekday[0]="Sun";
+weekday[1]="Mon";
+weekday[2]="Tue";
+weekday[3]="Wed";
+weekday[4]="Thu";
+weekday[5]="Fri";
+weekday[6]="Sat";
+
+   var day   = weekday[now.getDay()];
    var hour   = now.getHours();
    var minute = now.getMinutes();
    var second = now.getSeconds();
@@ -56,11 +66,9 @@ function getClockTime(now)
    if (hour   < 10) { hour   = "0" + hour;   }
    if (minute < 10) { minute = "0" + minute; }
    if (second < 10) { second = "0" + second; }
-   var timeString = hour +
+   var timeString = day + " " + hour +
                     ':' +
                     minute +
-                    ':' +
-                    second +
                     " " +
                     ap;
    return timeString;
@@ -77,11 +85,11 @@ function getClockTime(now)
            return d;
       }
        dojo.addOnLoad(function(){
-    var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/24aggdata.html"});
-    var chart4 = makeChart('rainchart', dstore, "rainfall", "Rainfall Total (24 Hour)", "Inches");
-    var chart3 = makeChart('hxchart', dstore, "humidity", "Relative Humidity (24 Hour)", "Percent");
-	var chart2 = makeChart('tempchart', dstore, "temperature", "Temperature (24 Hour)", "Degrees Celsius");
-	var chart1 = makeChart('preschart', dstore, "pressure", "Barometric Pressure (24 Hour)", "Pascals");
+    var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/7dayaggdata.html"});
+    var chart4 = makeChart('rainchart', dstore, "rainfall", "Rainfall Total (7 Days)", "Inches");
+    var chart3 = makeChart('hxchart', dstore, "humidity", "Relative Humidity (7 Days)", "Percent");
+	var chart2 = makeChart('tempchart', dstore, "temperature", "Temperature (7 Days)", "Degrees Celsius");
+	var chart1 = makeChart('preschart', dstore, "pressure", "Barometric Pressure (7 Days)", "Pascals");
 	
     chart1.render();
     chart2.render();
