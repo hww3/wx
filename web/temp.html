@@ -59,7 +59,7 @@ function getClockTime(now)
            return d;
       }
        dojo.addOnLoad(function(){
-var dstore = new dojox.data.CsvStore({identifier: "updated", url: "http://localhost:22203/24aggdata.html"});
+var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/24aggdata.html"});
         var chart1 = new dojox.charting.Chart2D("preschart", {title: "Barometric Pressure (24 Hour)",
   titleGap: 25,
   titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"
