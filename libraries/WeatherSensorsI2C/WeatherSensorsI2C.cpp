@@ -135,7 +135,7 @@ float WeatherSensorsI2C::calculateSpeedCustomary(uint16_t sensorValue)
 
 float WeatherSensorsI2C::calculateRainCustomary(uint16_t sensorValue)
 {
-	float svf = (float)sensorValue / 0.01;
+	float svf = (float)sensorValue * 0.01;
 	return svf;
 }
 
