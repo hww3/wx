@@ -77,26 +77,16 @@ function getClockTime(now)
            return d;
       }
        dojo.addOnLoad(function(){
-var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/24aggdata.html"});
+    var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/24aggdata.html"});
+    var chart4 = makeChart('rainchart', dstore, "rainfall", "Rainfall Total (24 Hour)", "Inches");
+    var chart3 = makeChart('hxchart', dstore, "humidity", "Relative Humidity (24 Hour)", "Percent");
 	var chart2 = makeChart('tempchart', dstore, "temperature", "Temperature (24 Hour)", "Degrees Celsius");
 	var chart1 = makeChart('preschart', dstore, "pressure", "Barometric Pressure (24 Hour)", "Pascals");
 chart1.render();
 chart2.render();
-/*
-        var chart2 = new dojox.charting.Chart2D("tempchart", {title: "Temperature (24 Hour)",                                                                                
-  titleGap: 25,
-  titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"                                                                                                               
-});                                                                                                                                                                                  
-          chart2.addPlot("default",                                                                                                                                                  
-          { type: "Default" , title: "Temperature", hMajorLines: true} );                                                                                                           
-        // set up axis and specify label function for dates                                                                                                                          
-        chart2.setTheme(dojox.charting.themes.Tom);                                                                                                                                  
-        chart2.addAxis("x",{labelFunc:labelfTime, title: "GMT",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});                   
-        chart2.addAxis("y", {vertical: true, title: "Degrees Celsius", titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" }); 
-        var series = new dojox.charting.DataSeries(dstore, {query: {updated: "*"}}, {x: "updated", y:"temperature"});                                                                   
-        chart2.addSeries("Temperature", series);                                                                                                                                        
-chart2.render();                                                                                                                                                                     
-*/
+chart3.render();
+chart4.render();
+
         var chart3 = new dojox.charting.Chart2D("hxchart", {title: "Relative Humidity (24 Hour)",                                                                                        
   titleGap: 25,                                                                                                                                                                      
   titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"                                                                                                               
@@ -117,6 +107,7 @@ chart3.render();
     <div id="tempchart" style="width: 850px; height: 300px;"></div>
     <div id="preschart" style="width: 850px; height: 300px;"></div>
     <div id="hxchart" style="width: 850px; height: 300px;"></div>
+    <div id="rainchart" style="width: 850px; height: 300px;"></div>
 <pre>
 </pre>
 </body>
