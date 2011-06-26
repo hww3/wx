@@ -228,7 +228,7 @@ org.activemq.Amq = function() {
 			sessionInitializedCallback = options.sessionInitializedCallback
 			clientId = options.clientId;
 			adapter.init(options);
-			sendPoll();
+//			sendPoll();
 			
 		},
 		    
@@ -288,6 +288,7 @@ org.activemq.Amq = function() {
 			messageHandlers[id] = handler;
 			var headers = options && options.selector ? {selector:options.selector} : null;
 			sendJmsMessage(destination, id, 'listen', headers);
+			sendPoll();
 		},
 
 		// remove Listener from channel or topic.

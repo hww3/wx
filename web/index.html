@@ -26,7 +26,7 @@ dojo.ready(function(){
 var amq = org.activemq.Amq;
 org.activemq.Amq.init({ uri: '/PMQ/web/queue_reader.pike', logging: true, timeout: 45, clientId:(new Date()).getTime().toString() });
 
-amq.addListener('wx', 'wunderbar', wunderbarHandler);
+amq.addListener('wx', 'observations', wunderbarHandler);
 				});
 
 </script>

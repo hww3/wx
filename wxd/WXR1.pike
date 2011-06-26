@@ -16,6 +16,29 @@ import ADT.Struct;
   Item luxb = lWord();
   Item luxc = lWord();
 
+static mixed cast(string type)
+{
+  if(type=="mapping") return as_mapping();
+  else return ::cast(type);
+}
+
+string as_json()
+{
+ return Tools.JSON.serialize((mapping)this); 
+}
+
+mapping as_mapping()
+{
+  mapping v = ([]);
+  foreach(indices(this);;string i)
+  {
+    v[i] = this[i];
+    if(stringp(v[i])) v[i] = replace(v[i], "\0", "");
+  }
+
+  return v; 
+}
+
 void insert(Sql.Sql db, string table)
 {
  mapping v = ([]);
@@ -28,7 +51,7 @@ void insert(Sql.Sql db, string table)
      else val = this[i];
      v[":" + i] = val;
 }
-werror("%O\n", mkmapping(indices(this), values(this)));
+//werror("%O\n", mkmapping(indices(this), values(this)));
   db->query("INSERT INTO " + table + " (updated, location, uptime, "
     "temperature, pressure, humidity, temperature_b, rainfall, windspeed, "
     "direction, wind_gusts, luminosity_a, luminosity_b, luminosity_c) "
