@@ -6,7 +6,7 @@ int main()
 {
   db = Sql.Sql("sqlite://wx.sqlite3");
   PMQ.PMQConstants.DEBUG_LEVEL(0);
-  client = PMQClient("pmq://127.0.0.1:9999");
+  client = PMQClient("pmq://127.0.0.1:9998");
 //client->set_backend(backend);
   client->connect();
   udp = Stdio.UDP();
