@@ -16,32 +16,27 @@
     </script>
 
     <script type="text/javascript">
-    //  dojo.require("my.Chart2D");
       dojo.require("dojox.charting.Chart2D");
       dojo.require("dojox.data.CsvStore");
       dojo.require("dojox.charting.DataSeries");
       dojo.require("dojox.charting.themes.Tom");
       // specify a single parameter function that produces labels from date numbers.
-function updateCharts()
-{
-}
 
 function makeChart(divname, source, field, chartname, units)
 {
-	        var chart1 = new dojox.charting.Chart2D(divname, {title: chartname,
-	  titleGap: 25,
-	  titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"
-	});
-	          chart1.addPlot("default", 
-	          { type: "Default" , title: chartname, hMajorLines: true} );
-	        // set up axis and specify label function for dates
-	        chart1.setTheme(dojox.charting.themes.Tom);
-	        chart1.addAxis("x",{labelFunc:labelfTime, title: "Time",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});
-	        chart1.addAxis("y", {vertical: true, title: units,  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });
-	        var series = new dojox.charting.DataSeries(source, {query: {updated: "*"}}, {x: "updated", y:field});
-	        chart1.addSeries(field, series);
-//	chart1.render();
-  return chart1;	
+ var chart1 = new dojox.charting.Chart2D(divname, {title: chartname,
+   titleGap: 25,
+   titleFont: "normal normal normal 15pt Arial", titleFontColor: "gray"
+  });
+ chart1.addPlot("default", 
+    { type: "Default" , title: chartname, hMajorLines: true} );
+      // set up axis and specify label function for dates
+ chart1.setTheme(dojox.charting.themes.Tom);
+ chart1.addAxis("x",{labelFunc:labelfTime, title: "Time",  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray", titleOrientation: "away"});
+ chart1.addAxis("y", {vertical: true, title: units,  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });
+ var series = new dojox.charting.DataSeries(source, {query: {updated: "*"}}, {x: "updated", y:field});
+ chart1.addSeries(field, series);
+ return chart1;	
 }
 
 function getClockTime(now)
@@ -65,31 +60,28 @@ function getClockTime(now)
                     ap;
    return timeString;
 } // function getClockTime()
-     
  function labelfTime(o)
-      {
-           var dt = new Date();
-           dt.setTime(o);
-           var d = /*
-			dt.getMonth()+1)+"/"+dt.getDate()+"/"+dt.getFullYear() + " " +i
-			*/ getClockTime(dt);
-//           console.log(o+"="+d);
-           return d;
-      }
-       dojo.addOnLoad(function(){
+ {
+   var dt = new Date();
+   dt.setTime(o);
+   var d = getClockTime(dt);
+   return d;
+ }
+
+dojo.addOnLoad(function(){
+
     var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/24aggdata.html"});
     var chart4 = makeChart('rainchart', dstore, "rainfall", "Rainfall Total (24 Hour)", "Inches");
     var chart3 = makeChart('hxchart', dstore, "humidity", "Relative Humidity (24 Hour)", "Percent");
-	var chart2 = makeChart('tempchart', dstore, "temperature", "Temperature (24 Hour)", "Degrees Celsius");
-	var chart1 = makeChart('preschart', dstore, "pressure", "Barometric Pressure (24 Hour)", "Pascals");
-	
+    var chart2 = makeChart('tempchart', dstore, "temperature", "Temperature (24 Hour)", "Degrees Celsius");
+    var chart1 = makeChart('preschart', dstore, "pressure", "Barometric Pressure (24 Hour)", "Pascals");
     chart1.render();
     chart2.render();
     chart3.render();
     chart4.render();
 
+});
 </script>
-<button onclick="updateCharts()">Update</button>
     <div id="tempchart" style="width: 850px; height: 300px;"></div>
     <div id="preschart" style="width: 850px; height: 300px;"></div>
     <div id="hxchart" style="width: 850px; height: 300px;"></div>

@@ -3,6 +3,7 @@ import ADT.Struct;
   inherit ADT.Struct;
 
   Item cookie = Chars(4);
+  Item station_id = Byte();
   Item uptime = lWord();
   Item temp = lWord();
   Item pres = lLWord();
@@ -55,7 +56,7 @@ void insert(Sql.Sql db, string table)
   db->query("INSERT INTO " + table + " (updated, location, uptime, "
     "temperature, pressure, humidity, temperature_b, rainfall, windspeed, "
     "direction, wind_gusts, luminosity_a, luminosity_b, luminosity_c) "
-    "VALUES(DATETIME('now'), 'remote1', :uptime, :temp, :pres, :relhx, "
+    "VALUES(DATETIME('now'), :station_id, :uptime, :temp, :pres, :relhx, "
     ":tempb, :rainfall, :windspeed, :winddir, :maxwindspeed, :luxa, "
     ":luxb, :luxc)", v);
 }
