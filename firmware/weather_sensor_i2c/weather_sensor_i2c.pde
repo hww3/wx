@@ -36,7 +36,8 @@
 #define SENSE_DIRECTION 0x02
 #define SENSE_RAINFALL  0x03
 #define SENSE_RESET     0x04
- 
+#define SENSE_RESTART   0x06
+
 #define RAIN_PIN 3
 #define SPEED_PIN 2
 #define VANE_PIN 24
@@ -61,11 +62,36 @@ int commandToRespond = 0;
  
  volatile int16_t rainCount = 0;
 volatile int last_awoke = 0;
+
+#include <avr/wdt.h>
+
+// Function Pototype
+//void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+
+#define soft_reset()        \
+do                          \
+{                           \
+    wdt_enable(WDTO_15MS);  \
+    for(;;)                 \
+    {                       \
+    }                       \
+} while(0)
+
+// Function Implementation
+/*
+void wdt_init(void)
+{
+    MCUSR = 0;
+    wdt_disable();
+
+    return;
+}
+*/
  
 void windInterrupt()
 {
-last_awoke = 0;
-    power_timer0_enable();
+  last_awoke = 0;
+  power_timer0_enable();
 
   unsigned long w_interrupt_time = millis();
   int x;
@@ -311,6 +337,13 @@ void requestEvent()
   else if(commandToRespond == SENSE_MAX_WINDSPEED)
   {
     sendBytes(calcMaxWindspeed());
+  }
+  else if(commandToRespond == SENSE_RESTART)
+  {
+    sendBytes(0xFFFF);
+    delay(20);
+    void (*softReset) (void) = 0; //declare reset function @ address 0
+    softReset();
   }
   else if(commandToRespond == SENSE_RESET)
   {

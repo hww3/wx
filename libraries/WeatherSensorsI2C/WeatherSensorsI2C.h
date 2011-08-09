@@ -12,9 +12,11 @@ typedef enum {
 #define SENSE_DIRECTION 0x02
 #define SENSE_RAINFALL  0x03
 #define SENSE_RESET     0x04
+#define SENSE_RESTART     0x06
 
 typedef enum {
     eResetCmd        = 0x04,
+    eHardwareResetCmd        = 0x06,
     eRainCountCmd  = 0x03,
     eWindSpeedCmd      = 0x01,
     eWindDirCmd = 0x02,
@@ -39,6 +41,7 @@ class WeatherSensorsI2C
 	float GetMaxSpeedMPH(void);
 	char * GetWindDirection(void);
 	void ResetCounters(void);
+	void ResetHardware(void);
 
 };
 

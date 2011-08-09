@@ -93,6 +93,16 @@ void WeatherSensorsI2C::ResetCounters(void)
 	readSensor(eResetCmd);
 }
 
+
+/**********************************************************
+ * ResetHardware
+ *  Reset the microcontroller.
+ *
+ **********************************************************/
+void WeatherSensorsI2C::ResetHardware(void)
+{
+	readSensor(eHardwareResetCmd);
+}
 /**********************************************************
  * SetReadDelay
  *  Set the I2C Read delay from the sensor.
