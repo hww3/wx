@@ -2,6 +2,7 @@
 
 #include <RF12.h>
 #include <Ports.h>
+#include <PortsSHT11.h>
 #include <PortsBMP085.h>
 #include <Wire.h>
 #include <LibHumidity.h>
@@ -9,9 +10,10 @@
 PortI2C two (2);
 PortI2C four (4);
 
+SHT11 humidity = SHT11(1);
 LuxPlug lsensor(four, 0x29);
 BMP085 psensor(two);
-LibHumidity humidity = LibHumidity(0);
+//LibHumidity humidity = LibHumidity(0);
 WeatherSensorsI2C ws =  WeatherSensorsI2C();
 
 MilliTimer timer;
@@ -176,8 +178,15 @@ void loop()
   payload.cookiec = 'R'; 
   payload.cookied = '1'; 
 
-  payload.relhx = humidity.GetHumidity();
-  payload.tempb = humidity.GetTemperatureC();
+//  payload.relhx = humidity.GetHumidity();
+//  payload.tempb = humidity.GetTemperatureC();
+
+float h,t;
+humidity.measure(SHT11::HUMI);
+humidity.measure(SHT11::TEMP);
+humidity.calculate(h, t);
+payload.relhx = h;
+payload.tempb = t;
 
 //  uint16_t v = ws.readSensor(eWindDirCmd);
 //Serial.println("");
@@ -199,13 +208,13 @@ void loop()
   Serial.print(" Temp in F: ");
   Serial.println(humidity.GetTemperatureF());
 */  
-//Serial.print(' ');
+Serial.print(' ');
   uint16_t traw = psensor.measure(BMP085::TEMP);
-//  Serial.print(traw);
+  Serial.print(traw);
   
   uint16_t praw = psensor.measure(BMP085::PRES);
-//  Serial.print(' ');
-//  Serial.print(praw);
+  Serial.print(' ');
+  Serial.print(praw);
   
 
   payload.uptime = uptime;

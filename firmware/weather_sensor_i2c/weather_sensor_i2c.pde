@@ -87,6 +87,18 @@ void wdt_init(void)
     return;
 }
 */
+
+uint8_t get_id()
+{
+  // digital pins 5&6 select i2c id.
+  uint8_t b = digitalRead(11);
+  uint8_t b2 = digitalRead(12);
+  
+  if(b && b2) return 3;
+  else if (b2) return 2;
+  else if (b) return 1;
+  else return 0;
+}
  
 void windInterrupt()
 {
