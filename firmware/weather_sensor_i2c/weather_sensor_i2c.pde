@@ -112,16 +112,13 @@ void windInterrupt()
   if (w_interrupt_time - w_last_interrupt_time > WIND_DEBOUNCE)
   {
     if(wind_time)
- //   {
-    wind_interval = (w_interrupt_time - wind_time);
+      wind_interval = (w_interrupt_time - wind_time);
     if(wind_interval && (!max_wind_interval || (max_wind_interval > wind_interval)))
       max_wind_interval = wind_interval;
-//    }
     wind_time = w_interrupt_time; 
   }
   
   w_last_interrupt_time = w_interrupt_time; 
-//  if(count_since_wake > 2) count_since_wake = 0;
 }
 
 void rainInterrupt()
@@ -293,9 +290,9 @@ int16_t calcWindDir()
   delay(10);
   power_adc_enable();
   
-  digitalWrite(4, HIGH);
   analogReference(EXTERNAL);
-  delay(3);
+  digitalWrite(4, HIGH);
+  delay(5);
   int windDir = analogRead(0);
   digitalWrite(4, LOW); 
 
