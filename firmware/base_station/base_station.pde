@@ -6,14 +6,18 @@
 
 #include <Ports.h>
 #include <RF12.h>
+#include <avr/wdt.h>
+
 
 #define WX_DATA_PORT 7656
 
 #define gPB ether.buffer
 
 static byte* bufPtr;
-
- struct {int16_t uptime; 
+/*
+ struct {
+   uint8_t station_id;
+   int16_t uptime; 
  int16_t temp; 
  int32_t pres; 
  float relhx; 
@@ -23,13 +27,14 @@ static byte* bufPtr;
  float maxwindspeed; 
  char winddira; 
  char winddirb; word luxa; word luxb; word luxc;} payload;
- 
+ */
 
 struct payload {
                 char cookiea;
                 char cookieb;
                 char cookiec;
                 char cookied;
+                uint8_t station_id;
                 int16_t uptime; 
                 int16_t temp; 
                 int32_t pres; 
@@ -56,7 +61,28 @@ byte Ethernet::buffer[700];
 static byte dnstid_l; // a counter for transaction ID
 #define DNSCLIENT_SRC_PORT_H 0xD2 
 
+#define soft_reset()        \
+do                          \
+{                           \
+    wdt_enable(WDTO_15MS);  \
+    for(;;)                 \
+    {                       \
+    }                       \
+} while(0)
 
+// Function Pototype
+//void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+
+// Function Implementation
+/*
+void wdt_init(void)
+{
+    MCUSR = 0;
+    wdt_disable();
+
+    return;
+}
+*/
 void setup() {
  Serial.begin(57600);
  Serial.println("\n[bmp085recv]\n");
@@ -75,14 +101,14 @@ void setup() {
     delay(5000);
     void (*softReset) (void) = 0; //declare reset function @ address 0
     softReset();
-  }    
+   }    
   ether.printIp("IP: ", ether.myip);
   ether.printIp("GW: ", ether.gwip);
   
   if(!ether.dnsLookup(PSTR("192.168.1.20")))
   {
     Serial.println("DNS failed");
-    delay(000);
+    delay(5000);
     void (*softReset) (void) = 0; //declare reset function @ address 0
     softReset();
   }    
@@ -93,11 +119,14 @@ void setup() {
 
 void loop() {
  
- if(rf12_recvDone() && rf12_crc == 0 && rf12_len == sizeof(wx_data)) 
+ if(rf12_recvDone() && rf12_crc == 0)
+ if(rf12_len != sizeof(wx_data)) 
+ Serial.println("have packet!\n");
+ else
  {
      wx_data * data = (wx_data *) rf12_data;
-     
-     Serial.print("BMP / RHumidity / Rain / Wind / Lux ");
+     Serial.print((int)data->station_id);
+     Serial.print(" BMP / RHumidity / Rain / Wind / Lux ");
      Serial.print(data->cookiea);
      Serial.print(data->cookieb);
      Serial.print(data->cookiec);

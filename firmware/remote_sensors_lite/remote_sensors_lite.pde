@@ -2,21 +2,14 @@
 
 #include <RF12.h>
 #include <Ports.h>
-#include <PortsSHT11.h>
 #include <PortsBMP085.h>
 #include <Wire.h>
 #include <LibHumidity.h>
 
-PortI2C two (2);
-PortI2C four (4);
 
-SHT11 humidity = SHT11(1);
-LuxPlug lsensor(four, 0x29);
-BMP085 psensor(two);
-//LibHumidity humidity = LibHumidity(0);
-WeatherSensorsI2C ws =  WeatherSensorsI2C();
+LibHumidity humidity = LibHumidity(0);
 
-MilliTimer timer;
+//MilliTimer timer;
 uint16_t uptime;
 uint8_t id;
 
@@ -63,15 +56,14 @@ void wdt_init(void)
 */
 void setup() 
 { 
-  Serial.begin(57600);   
+  Serial.begin(9600);   
   Serial.print("\n[remote_sensors]\n");
- 
+ // return;
   // fire up the wireless!
-  rf12_initialize(3, RF12_915MHZ, 5);
- // rf12_easyInit(15);
-  
-  psensor.getCalibData();
-  lsensor.begin();
+  rf12_initialize(6, RF12_915MHZ, 5);
+//  rf12_initialize(0);
+//  rf12_easyInit(15);
+  Serial.print("\n[remote_sensors: RF INIT]\n");
   
   // digital pins 5&6 select station id.
   pinMode(5, INPUT);
@@ -87,6 +79,7 @@ void setup()
 
 uint8_t get_id()
 {
+  return 6;
   // digital pins 5&6 select station id.
   uint8_t b = digitalRead(5);
   uint8_t b2 = digitalRead(6);
@@ -107,7 +100,7 @@ void wx_handle_remote_command(char * data)
     {
       int i;
       Serial.println("Resetting.");
-      ws.ResetHardware();
+ //     ws.ResetHardware();
       delay(20);
       
       do
@@ -127,7 +120,10 @@ void wx_handle_remote_command(char * data)
 void loop() 
 { 
   wx_cmd_t * data;
- 
+ //   Serial.print("\n[remote_sensors]\n");
+ //   delay(1000);
+//return;
+
  if(rf12_recvDone() && rf12_crc == 0 && rf12_len == sizeof(wx_cmd_t)) 
  {
      data = (wx_cmd_t *) rf12_data;
@@ -143,7 +139,8 @@ void loop()
        }
      }
  }
- if(timer.poll(1000))
+ 
+// if(timer.poll(1000))
   {
 
 //rf12_recvDone();
@@ -178,26 +175,14 @@ void loop()
   payload.cookiec = 'R'; 
   payload.cookied = '1'; 
 
-//  payload.relhx = humidity.GetHumidity();
-//  payload.tempb = humidity.GetTemperatureC();
-
-float h,t;
-humidity.measure(SHT11::HUMI);
-humidity.measure(SHT11::TEMP);
-humidity.calculate(h, t);
-payload.relhx = h;
-payload.tempb = t;
+  payload.relhx = humidity.GetHumidity();
+  payload.tempb = humidity.GetTemperatureC();
 
 //  uint16_t v = ws.readSensor(eWindDirCmd);
 //Serial.println("");
 //Serial.print("v ");
 //Serial.println(v);
 
-  const word * lux = lsensor.getData();
-  
-  payload.luxa = lux[0];
-  payload.luxb = lux[1];
-  payload.luxc = lsensor.calcLux();
   
   
 //  Serial.print(payload.relhx);
@@ -208,33 +193,17 @@ payload.tempb = t;
   Serial.print(" Temp in F: ");
   Serial.println(humidity.GetTemperatureF());
 */  
-Serial.print(' ');
-  uint16_t traw = psensor.measure(BMP085::TEMP);
-  Serial.print(traw);
+//Serial.print(' ');
+//  Serial.print(traw);
   
-  uint16_t praw = psensor.measure(BMP085::PRES);
-  Serial.print(' ');
-  Serial.print(praw);
+//  Serial.print(' ');
+//  Serial.print(praw);
   
 
   payload.uptime = uptime;
   payload.station_id = id;  
  
 // delay(5);
-  payload.rainfall = ws.GetRainfallInches();
-  payload.windspeed = ws.GetSpeedMPH();
-  payload.maxwindspeed = ws.GetMaxSpeedMPH();
-  
-  char * dir = ws.GetWindDirection();
-  
-  payload.winddira = dir[0];
-
-  if(dir[1])
-    payload.winddirb = dir[1];
-  else
-    payload.winddirb = 0;
-    
-  psensor.calculate(payload.temp, payload.pres);
   Serial.print(' ');
   Serial.print(payload.temp);
   Serial.print(' ');
@@ -248,7 +217,7 @@ Serial.print(' ');
   Serial.print(" / ");
   Serial.print(payload.windspeed);
   Serial.print(' ');
-  Serial.print(dir);
+  Serial.print(' ');
   Serial.print(' ');
   Serial.print(payload.maxwindspeed);
   Serial.print(" / ");
@@ -258,9 +227,11 @@ Serial.print(' ');
   Serial.print(' ');
   Serial.println(payload.luxc);
 
- // Serial.println("sending");
+  Serial.println("sending");
+ 
   while(1)
   {
+    
     rf12_recvDone();
     if(rf12_canSend())
     {
@@ -272,9 +243,12 @@ Serial.print(' ');
  //     Serial.println("Sent");
       break;
     }
+    
   //rf12_easySend(&payload, sizeof(payload));
   }
-    Sleepy::loseSomeTime(10000);
+  
+  for(int i = 0; i < 6; i++)
+    Sleepy::loseSomeTime(30*1000);
  
   }
 }

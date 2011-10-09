@@ -1,0 +1,10 @@
+TODO
+
+- verify and adjust weather vane readings
+- sleep code for remote_sensors
+- investigate luxplug
+- investigate duplicate received packets (done)
+- add reset code for weather sensor i2c (done)
+- add reset code for remote sensors
+- add support to name remote sensor location
+

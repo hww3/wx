@@ -36,7 +36,8 @@
 #define SENSE_DIRECTION 0x02
 #define SENSE_RAINFALL  0x03
 #define SENSE_RESET     0x04
- 
+#define SENSE_RESTART   0x06
+
 #define RAIN_PIN 3
 #define SPEED_PIN 2
 #define VANE_PIN 24
@@ -61,11 +62,48 @@ int commandToRespond = 0;
  
  volatile int16_t rainCount = 0;
 volatile int last_awoke = 0;
+
+#include <avr/wdt.h>
+
+// Function Pototype
+//void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3")));
+
+#define soft_reset()        \
+do                          \
+{                           \
+    wdt_enable(WDTO_15MS);  \
+    for(;;)                 \
+    {                       \
+    }                       \
+} while(0)
+
+// Function Implementation
+/*
+void wdt_init(void)
+{
+    MCUSR = 0;
+    wdt_disable();
+
+    return;
+}
+*/
+
+uint8_t get_id()
+{
+  // digital pins 5&6 select i2c id.
+  uint8_t b = digitalRead(11);
+  uint8_t b2 = digitalRead(12);
+  
+  if(b && b2) return 3;
+  else if (b2) return 2;
+  else if (b) return 1;
+  else return 0;
+}
  
 void windInterrupt()
 {
-last_awoke = 0;
-    power_timer0_enable();
+  last_awoke = 0;
+  power_timer0_enable();
 
   unsigned long w_interrupt_time = millis();
   int x;
@@ -74,16 +112,13 @@ last_awoke = 0;
   if (w_interrupt_time - w_last_interrupt_time > WIND_DEBOUNCE)
   {
     if(wind_time)
- //   {
-    wind_interval = (w_interrupt_time - wind_time);
+      wind_interval = (w_interrupt_time - wind_time);
     if(wind_interval && (!max_wind_interval || (max_wind_interval > wind_interval)))
       max_wind_interval = wind_interval;
-//    }
     wind_time = w_interrupt_time; 
   }
   
   w_last_interrupt_time = w_interrupt_time; 
-//  if(count_since_wake > 2) count_since_wake = 0;
 }
 
 void rainInterrupt()
@@ -255,9 +290,9 @@ int16_t calcWindDir()
   delay(10);
   power_adc_enable();
   
-  digitalWrite(4, HIGH);
   analogReference(EXTERNAL);
-  delay(3);
+  digitalWrite(4, HIGH);
+  delay(5);
   int windDir = analogRead(0);
   digitalWrite(4, LOW); 
 
@@ -311,6 +346,13 @@ void requestEvent()
   else if(commandToRespond == SENSE_MAX_WINDSPEED)
   {
     sendBytes(calcMaxWindspeed());
+  }
+  else if(commandToRespond == SENSE_RESTART)
+  {
+    sendBytes(0xFFFF);
+    delay(20);
+    void (*softReset) (void) = 0; //declare reset function @ address 0
+    softReset();
   }
   else if(commandToRespond == SENSE_RESET)
   {
