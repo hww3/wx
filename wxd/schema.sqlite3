@@ -1,3 +1,12 @@
+CREATE TABLE stations (
+  station_id int not null primary key,
+  location char(100) not null,
+  has_wind int(1),
+  has_rain int(1),
+  has_pressure int(1),
+  has_lux int(1),
+  has_rhx int(1)
+);
 
 CREATE TABLE observations (
 
