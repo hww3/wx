@@ -1,3 +1,6 @@
+        <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dijit/themes/tundra/tundra.css"
+        />
+
 <script type="text/javascript">
 	var djConfig = {
 		isDebug: true,
@@ -8,18 +11,130 @@
 		}
 	};
 </script>
-<script src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" type="text/javascript"></script>
+<xscript src="http://ajax.googleapis.com/ajax/libs/dojo/1.6/dojo/dojo.xd.js" type="text/javascript"></xscript>
+<script src="dojo.js" type="text/javascript"></script>
 <script type="text/javascript" src="js/amq_dojo_adapter.js"></script>
 <script type="text/javascript" src="js/amq.js"></script>
-
-<sqltable query="select * from observations order by updated desc limit 25"/>
+<body class="tundra">
+<xsqltable query="select * from observations order by updated desc limit 25"/>
+<div id="reports">
+</div>
 
 <script type="text/javascript">
+dojo.registerModulePath("ozo","/ozo");
+dojo.require("dojo.date.locale");
+dojo.require("dojo.number");
+dojo.require("ozo.timeago");
+dojo.require("dijit.TitlePane");
+
 var amq;
+
+function pascalToInHg(value)
+{
+  return value/3376.85;
+}
+
+function CToF(value)
+{
+  return 32+(value*1.9);
+}
+
+function dewpoint(relh, temp)
+{
+  var dp;
+
+  var a = 17.271;
+  var b = 237.7;
+
+  dp = ((a*temp)/(b+temp)) + Math.log(relh/100.0);
+
+  dp = (b*dp)/(a-dp);
+
+  return dp;
+
+}
+
+function zeropad(num) {
+                return ((num < 10) ? '0' : '') + num;
+}
+
+function iso8601(date) {
+                return date.getUTCFullYear()
+                + "-" + zeropad(date.getUTCMonth()+1)
+                + "-" + zeropad(date.getUTCDate())
+                + "T" + zeropad(date.getUTCHours())
+                + ":" + zeropad(date.getUTCMinutes())
+                + ":" + zeropad(date.getUTCSeconds()) + "Z";
+            }
+
+var stationreports = {};
 
 function wunderbarHandler(message)
 {
-	dojo.byId('foo').innerHTML=(message.textContent);
+//	dojo.byId('foo').innerHTML=(message.textContent);
+
+	var x = dojo.fromJson(message.textContent);
+
+	var y = dijit.byId("station_id_" + x.station_id);
+        if(!y)
+        {
+	  var reports = dojo.byId("reports");
+	  y = new dijit.TitlePane({
+            title: "Station #" + x.station_id ,
+            id: "station_id_" + x.station_id, content: ""
+        });
+	  reports.appendChild(y.domNode);
+
+	  y.set('content', 
+		"<div id='station_id_" + x.station_id + "_stats'></div>" + 
+		"<div id='station_id_" + x.station_id + "_reported'></div>"
+	  ); 
+
+        }
+	var whend = message.getAttribute("pmq-accepted");
+	whend = dojo.date.locale.parse(whend,
+			{datePattern: 'EEE, dd MMM yyyy HH:mm:ss vz', selector: 'date'});
+
+	var when = iso8601(whend);
+	dojo.byId("station_id_" + x.station_id + "_stats").innerHTML = formatReport(x); 
+	dojo.byId("station_id_" + x.station_id + "_reported").innerHTML = "<abbr class='" + x.station_id + "_reported' title='" + 
+		when + "'>" + when + "</abbr>";
+	stationreports["s" + x.station_id] = new ozo.timeago("abbr." + x.station_id + "_reported");
+	console.log("received message from " + x.station_id + ": " + x);
+	
+}
+
+
+function formatReport(report)
+{
+  var rep = 
+   addEntry("Temperature", report.tempb, 1, {isTempC: 1}) + 
+   addEntry("Relative Humidity", report.relhx, 1) +
+   addEntry("Dew Point", dewpoint(report.relhx, report.tempb), 1, {isTempC: 1}) +
+   addEntry("Barometric Pressure", report.pres, 1, {isPascals: 1});
+  return rep;
+}
+
+function addEntry(title, value, places, opts)
+{
+  var rv = "";
+  var number;
+
+  if(opts && opts.isTempC)
+  {
+    number = dojo.number.round(value, places||1) + "&deg;C/" + 
+	dojo.number.round(CToF(value), places||1) + "&deg;F";
+  }
+  else if(opts && opts.isPascals)
+  {
+    number = dojo.number.round(value/100, places||0) + "mbar/" +
+     dojo.number.round(pascalToInHg(value), places||2) + "inHg";
+  }
+  else
+    number = dojo.number.round(value, places||1);
+
+  rv = title + ": " + number + " ";
+  return rv;
 }
 
 dojo.ready(function(){
@@ -30,4 +145,4 @@ amq.addListener('wx', 'observations', wunderbarHandler);
 				});
 
 </script>
-<div id='foo'></div>
+</body>
