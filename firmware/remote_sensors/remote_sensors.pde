@@ -5,16 +5,25 @@
 #include <PortsSHT11.h>
 #include <PortsBMP085.h>
 #include <Wire.h>
-#include <LibHumidity.h>
+#include <LibHumidity.h>  
 
-PortI2C two (2);
+// define this if you have a set of davis wind and rain sensors attached.
+#define HAVE_WIND_RAIN 1
+
+// this causes reports to occur more quickly, and skips low power mode.
+#undef DEBUG 1
+
+
 PortI2C four (4);
+PortI2C one (1);
 
-SHT11 humidity = SHT11(1);
-LuxPlug lsensor(four, 0x29);
-BMP085 psensor(two);
+SHT11 humidity = SHT11(4);
+LuxPlug lsensor(one, 0x29);
+BMP085 psensor(four);
 //LibHumidity humidity = LibHumidity(0);
+#ifdef HAVE_WIND_RAIN
 WeatherSensorsI2C ws =  WeatherSensorsI2C();
+#endif /* HAVE_WIND_RAIN */
 
 MilliTimer timer;
 uint16_t uptime;
@@ -65,14 +74,23 @@ void setup()
 { 
   Serial.begin(57600);   
   Serial.print("\n[remote_sensors]\n");
- 
+ #ifdef DEBUG
+  Serial.println("[debug mode]");
+#else
+  Serial.println("[production mode]");
+#endif /* DEBUG */
+
   // fire up the wireless!
   rf12_initialize(3, RF12_915MHZ, 5);
  // rf12_easyInit(15);
-  
+  Serial.println("[radio init]");
   psensor.getCalibData();
+  Serial.println("[bmp085 init]");
+
   lsensor.begin();
-  
+  Serial.println("[lux init]");
+  Serial.println("[wind rain init]");
+
   // digital pins 5&6 select station id.
   pinMode(5, INPUT);
   digitalWrite(5, HIGH);
@@ -107,9 +125,10 @@ void wx_handle_remote_command(char * data)
     {
       int i;
       Serial.println("Resetting.");
+#ifdef HAVE_WIND_RAIN
       ws.ResetHardware();
       delay(20);
-      
+#endif /* HAVE_WIND_RAIN */      
       do
       {
         i = rf12_canSend();
@@ -215,16 +234,17 @@ Serial.print(' ');
   uint16_t praw = psensor.measure(BMP085::PRES);
   Serial.print(' ');
   Serial.print(praw);
-  
+
+Serial.print("X ");  
 
   payload.uptime = uptime;
   payload.station_id = id;  
  
+#ifdef HAVE_WIND_RAIN
 // delay(5);
   payload.rainfall = ws.GetRainfallInches();
   payload.windspeed = ws.GetSpeedMPH();
   payload.maxwindspeed = ws.GetMaxSpeedMPH();
-  
   char * dir = ws.GetWindDirection();
   
   payload.winddira = dir[0];
@@ -233,7 +253,15 @@ Serial.print(' ');
     payload.winddirb = dir[1];
   else
     payload.winddirb = 0;
+#else
+  payload.rainfall = 0;
+  payload.windspeed = 0;
+  payload.maxwindspeed = 0;
+  payload.winddira = 'X';
+  payload.winddirb = 'X';  
+#endif /* HAVE_WIND_RAIN */
     
+  Serial.print("Y");
   psensor.calculate(payload.temp, payload.pres);
   Serial.print(' ');
   Serial.print(payload.temp);
@@ -248,7 +276,8 @@ Serial.print(' ');
   Serial.print(" / ");
   Serial.print(payload.windspeed);
   Serial.print(' ');
-  Serial.print(dir);
+  Serial.print(payload.winddira);
+  Serial.print(payload.winddirb);
   Serial.print(' ');
   Serial.print(payload.maxwindspeed);
   Serial.print(" / ");
@@ -274,8 +303,12 @@ Serial.print(' ');
     }
   //rf12_easySend(&payload, sizeof(payload));
   }
+  
+#ifdef DEBUG
+  delay(1000);
+#else
     Sleepy::loseSomeTime(10000);
- 
+#endif /* DEBUG */ 
   }
 }
 

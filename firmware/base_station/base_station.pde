@@ -88,9 +88,7 @@ void setup() {
  Serial.println("\n[bmp085recv]\n");
  
  rf12_initialize(30, RF12_915MHZ, 5);
- 
-// return;
-  
+   
   if(ether.begin(sizeof Ethernet::buffer, mymac) == 0)
   {
     Serial.println("failed to access Ethernet controller");
@@ -118,12 +116,13 @@ void setup() {
 }
 
 void loop() {
- 
+//return; 
  if(rf12_recvDone() && rf12_crc == 0)
- if(rf12_len != sizeof(wx_data)) 
- Serial.println("have packet!\n");
- else
- {
+   if(rf12_len != sizeof(wx_data)) 
+// Serial.println("have packet!\n");
+     return;
+   else
+   {
      wx_data * data = (wx_data *) rf12_data;
      Serial.print((int)data->station_id);
      Serial.print(" BMP / RHumidity / Rain / Wind / Lux ");
