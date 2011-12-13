@@ -23,6 +23,7 @@
 <script type="text/javascript">
 dojo.registerModulePath("ozo","/ozo");
 dojo.require("dojo.date.locale");
+dojo.require("dojo.date.stamp");
 dojo.require("dojo.number");
 dojo.require("ozo.timeago");
 dojo.require("dijit.TitlePane");
@@ -37,6 +38,34 @@ function pascalToInHg(value)
 function CToF(value)
 {
   return 32+(value*1.9);
+}
+
+function FToC(value)
+{
+  return ((value - 32.0) * (5.0/9.0));
+}
+
+function heatindex(relh, temp)
+{
+  var hi;
+
+  temp = CToF(temp);
+
+  var c1 = -42.379;
+  var c2 = 2.049;
+  var c3 = 10.14;
+  var c4 = -0.2248;
+  var c5 = -6.838e-3;
+  var c6 = -5.482e-2;
+  var c7 = 1.228e-3;
+  var c8 = 8.528e-4;
+  var c9 = -1.99e-6;
+
+  hi = c1 + (c2*temp) + (c3*relh) + (c4*temp*relh) + (c5*temp*temp) + 
+      (c6*relh*relh) + (c7*temp*temp*relh) + (c8*temp*relh*relh) + 
+      (c9*temp*temp*relh*relh);
+
+  return FToC(hi);
 }
 
 function dewpoint(relh, temp)
@@ -71,8 +100,6 @@ var stationreports = {};
 
 function wunderbarHandler(message)
 {
-//	dojo.byId('foo').innerHTML=(message.textContent);
-
 	var x = dojo.fromJson(message.textContent);
 
 	var y = dijit.byId("station_id_" + x.station_id);
@@ -82,36 +109,48 @@ function wunderbarHandler(message)
 	  y = new dijit.TitlePane({
             title: "Station #" + x.station_id ,
             id: "station_id_" + x.station_id, content: ""
-        });
+          });
 	  reports.appendChild(y.domNode);
 
 	  y.set('content', 
 		"<div id='station_id_" + x.station_id + "_stats'></div>" + 
 		"<div id='station_id_" + x.station_id + "_reported'></div>"
 	  ); 
-
         }
-	var whend = message.getAttribute("pmq-accepted");
-	whend = dojo.date.locale.parse(whend,
-			{datePattern: 'EEE, dd MMM yyyy HH:mm:ss vz', selector: 'date'});
 
+	var whend = message.getAttribute("pmq-accepted");
+        whend = new Date(whend);
+//console.log(whend);
+//whend = dojo.date.stamp.fromISOString(whend);
+//	whend = dojo.date.locale.parse(whend,
+//		  {datePattern: 'EEE, dd MMM yyyy HH:mm:ss vz', selector: 'date'});
+console.log(whend);
 	var when = iso8601(whend);
+console.log(whend);
 	dojo.byId("station_id_" + x.station_id + "_stats").innerHTML = formatReport(x); 
-	dojo.byId("station_id_" + x.station_id + "_reported").innerHTML = "<abbr class='" + x.station_id + "_reported' title='" + 
+	dojo.byId("station_id_" + x.station_id + "_reported").innerHTML = "<abbr class='time_reported' title='" + 
 		when + "'>" + when + "</abbr>";
-	stationreports["s" + x.station_id] = new ozo.timeago("abbr." + x.station_id + "_reported");
-	console.log("received message from " + x.station_id + ": " + x);
-	
+	if(!report_time)
+          report_time = new ozo.timeago("abbr.time_reported");
+        else
+          report_time._refresh();
+
+	console.log("received message from " + x.station_id + ": " + x);	
 }
+
+var report_time;
 
 
 function formatReport(report)
 {
   var rep = 
    addEntry("Temperature", report.tempb, 1, {isTempC: 1}) + 
+   addEntry("Temperature", report.temp/10.0, 1, {isTempC: 1}) + 
    addEntry("Relative Humidity", report.relhx, 1) +
-   addEntry("Dew Point", dewpoint(report.relhx, report.tempb), 1, {isTempC: 1}) +
-   addEntry("Barometric Pressure", report.pres, 1, {isPascals: 1});
+   addEntry("Dew Point", dewpoint(report.relhx, report.tempb), 1, {isTempC: 1});
+if(report.tempb > 27.0)
+ rep +=  addEntry("Heat Index", heatindex(report.relhx, report.tempb), 1, {isTempC: 1});
+ rep +=  addEntry("Barometric Pressure", report.pres, 1, {isPascals: 1});
   return rep;
 }
 
