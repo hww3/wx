@@ -1,10 +1,19 @@
-date,updated,rainfall,temperature,pressure,humidity
+date,updated,rainfall,temperature,pressure,humidity,wxti
 <sqloutput                                                                                                                    
-query="SELECT rowid,updated,strftime('%s',updated)*1000 as tsupdated,
-avg(temperature) as temperature,avg(pressure) as pressure,
-avg(humidity) as humidity, max(rainfall) as rainfall
+query="
+SELECT 	rowid,
+	updated, 
+strftime('%s', strftime('%Y-%m-%d %H:00', updated)) +  (strftime('%M', updated)/30) *1800 as bintime,
+
+	avg(temperature) as temperature,
+	avg(temperature_b) as temperature_b,
+	avg(pressure) as pressure,
+	avg(humidity) as humidity, 
+	max(rainfall) as rainfall
 FROM observations 
 WHERE updated > DATETIME('now', '-7 days') 
-GROUP BY strftime('%Y%m%d%H0', updated) + strftime('%M', updated)/30 
-ORDER BY updated asc" quote="#">#updated#,#tsupdated#,#rainfall#,#temperature#,#pressure#,#humidity#
+GROUP BY bintime
+ORDER BY updated asc
+
+" quote="#">#updated#,#bintime#,#rainfall#,#temperature#,#temperature_b#,#pressure#,#humidity#
 </sqloutput>                                      
