@@ -69,14 +69,22 @@ org.activemq.AmqAdapter = {
 				url: uri,
 				handleAs: "xml",
 				headers: options.headers,
-				load : options.success ? options.success : function() {},
+				options: options,
+				load : this.handleLoad, 
 				error: options.error ? function(ex, ioargs) {
 						options.error(ioargs.xhr,ioargs.xhr.status, ex);
 					} : function() {}
 			});
 		}
 	},
-
+	handleLoad: function(data, evt)
+        {
+	  var options = this.options;
+	  if(evt.xhr.status >= 400) 
+	    options.error(evt.xhr, evt.xhr.status, new Exception("Error received from server."));
+	  else if(options.success)
+	    options.success(data, evt);
+        },
 	log: function(message, exception) {
 		if (typeof console != 'undefined' && console.log) console.log(message);
 	}

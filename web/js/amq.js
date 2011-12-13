@@ -33,7 +33,7 @@ org.activemq.Amq = function() {
 
 	// Just a shortcut to eliminate some redundant typing.
 	var adapter = org.activemq.AmqAdapter;
-
+	var errorCount = 0;
 	if (typeof adapter == 'undefined') {
 		throw 'An org.activemq.AmqAdapter must be declared before the amq.js script file.'
 	}
@@ -88,7 +88,14 @@ org.activemq.Amq = function() {
 	 * invoke the handler with the matching id.
 	 */
 	var messageHandler = function(data) {
-		var response = data.getElementsByTagName("ajax-response");
+		var response = data.getElementsByTagName("ajax-error");
+		if (response != null && response.length == 1)
+		{
+		  adapter.log('AJAX Error received from server: ' + responses[0].innerHTML);
+	  	  errorCount ++;
+		  return;
+		}
+		response = data.getElementsByTagName("ajax-response");
 		if (response != null && response.length == 1) {
 			connectStatusHandler(true);
 			var responses = response[0].childNodes;    // <response>
@@ -100,7 +107,9 @@ org.activemq.Amq = function() {
 
 				var id = responseElement.getAttribute('id');
 
-				var handler = messageHandlers[id];
+				var handler;
+				var handlerReg = messageHandlers[id];
+				if(handlerReg) handler = handlerReg.handler;
 
 				if (logging && handler == null) {
 					adapter.log('No handler found to match message with id = ' + id);
@@ -125,22 +134,36 @@ org.activemq.Amq = function() {
 		connectStatusHandler(false);
 		if (status === 'error' && xhr.status === 0) {
 			if (logging) adapter.log('Server connection dropped.');
+			errorCount ++;
 			setTimeout(function() { sendPoll(); }, pollErrorDelay);
 			return;
 		}
 		if (logging) adapter.log('Error occurred in poll. HTTP result: ' +
 		                         xhr.status + ', status: ' + status);
+		errorCount ++;
 		setTimeout(function() { sendPoll(); }, pollErrorDelay);
 	}
 
 	var pollHandler = function(data) {
+	       var hadError = 0;
 		try {
-			messageHandler(data);
+			hadError = messageHandler(data);
+			if(hadError)
+			  errorCount++
+			else
+			  errorCount = 0;
 		} catch(e) {
+			hadError = 1;
 			if (logging) adapter.log('Exception in the poll handler: ' + data, e);
 			throw(e);
 		} finally {
-			setTimeout(sendPoll, pollDelay);
+			if(!hadError)
+  			  setTimeout(sendPoll, pollDelay);
+                        else
+			{
+			  setTimeout(function() { sendPoll(); }, pollErrorDelay);
+ 			  errorCount ++;
+			}
 		}
 	};
 
@@ -153,6 +176,14 @@ org.activemq.Amq = function() {
 	}
 
 	var sendPoll = function() {
+		if(this.errorCount > 10)
+		{
+		  // unsubscribe all
+		  for (var key in this.messageHandlers) {
+		    this.removeListener(key, this.messageHandlers[key].destination);
+		  }
+		  errorCount = 0;
+		}
 		// Workaround IE6 bug where it caches the response
 		// Generate a unique query string with date and random
 		var now = new Date();
@@ -285,7 +316,11 @@ org.activemq.Amq = function() {
 		//
 		// Example: addListener( 'handler', 'topic://test-topic', function(msg) { return msg; }, { selector: "property-name='property-value'" } )
 		addListener : function(id, destination, handler, options) {
-			messageHandlers[id] = handler;
+			messageHandlers[id] = {"handler": handler, "destination": destination, "options": options};
+			this.lowAddListener(id, destination, handler, options);
+		},
+
+		lowAddListener: function(id, destination, handler, options) {
 			var headers = options && options.selector ? {selector:options.selector} : null;
 			sendJmsMessage(destination, id, 'listen', headers);
 			sendPoll();
