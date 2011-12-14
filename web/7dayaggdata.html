@@ -1,5 +1,5 @@
-date,updated,rainfall,temperature,pressure,humidity,wxti
-<sqloutput                                                                                                                    
+date,updated,rainfall,temperature,temperature_b,pressure,humidity
+<sqloutput
 query="
 SELECT 	rowid,
 	updated, 
@@ -11,7 +11,10 @@ strftime('%s', strftime('%Y-%m-%d %H:00', updated)) +  (strftime('%M', updated)/
 	avg(humidity) as humidity, 
 	max(rainfall) as rainfall
 FROM observations 
-WHERE updated > DATETIME('now', '-7 days') 
+WHERE 
+    location=&form.location; 
+  AND 
+    updated > DATETIME('now', '-7 days') 
 GROUP BY bintime
 ORDER BY updated asc
 
