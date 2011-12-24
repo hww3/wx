@@ -5,14 +5,15 @@ import ADT.Struct;
   Item cookie = Chars(4);
   Item station_id = Byte();
   Item uptime = lWord();
-  Item temp = lWord();
+  Item temp = lSWord();
   Item pres = lLWord();
   Item relhx = Float();
   Item tempb = Float();
   Item rainfall = Float();
   Item windspeed = Float();
   Item maxwindspeed = Float();
-  Item winddir = Chars(2);
+  Item winddegrees = lWord();
+//  Item winddir = Chars(2);
   Item luxa = lWord();
   Item luxb = lWord();
   Item luxc = lWord();
@@ -47,6 +48,7 @@ void insert(Sql.Sql db, string table)
   {  
      mixed val;
      if(i=="cookie") continue;
+     if(i=="winddir") continue;
      else if(i=="temp") val = (this[i])/10.0;
      else if(this[i] == "\0\0") val = "--";
      else val = this[i];
@@ -57,7 +59,7 @@ void insert(Sql.Sql db, string table)
     "temperature, pressure, humidity, temperature_b, rainfall, windspeed, "
     "direction, wind_gusts, luminosity_a, luminosity_b, luminosity_c) "
     "VALUES(DATETIME('now'), :station_id, :uptime, :temp, :pres, :relhx, "
-    ":tempb, :rainfall, :windspeed, :winddir, :maxwindspeed, :luxa, "
+    ":tempb, :rainfall, :windspeed, :winddegrees, :maxwindspeed, :luxa, "
     ":luxb, :luxc)", v);
 }
 // little endian word
@@ -90,7 +92,11 @@ class lSWord {
             in, -~(1<<size*8-1), ~((-1)<<size*8-1));
     value = in;
   }
-  void decode(object f) { int v; sscanf(f->read(size), "%-"+size+"c", v); sscanf(sprintf(size + "c", v), "%+" +size+"c", value); }
+  void decode(object f) { int v; sscanf((f->read(size)), "%-"+size+"c", v); 
+	if(v>>15)
+	  value = -((v-1)^0xffff);
+        else value = v;
+}
   string encode() { return sprintf("%-"+size+"c", value); }
 
   protected string _sprintf(int t) {
@@ -115,7 +121,7 @@ class lWord {
             in, ~((-1)<<size*8));
     value = in;
   }
-  void decode(object f) { sscanf(f->read(size), "%-"+size+"c", value); }
+  void decode(object f) { sscanf(f->read(size), "%-"+size+"c", value);}
   string encode() { return sprintf("%-"+size+"c", value); }
 
   protected string _sprintf(int t) {
