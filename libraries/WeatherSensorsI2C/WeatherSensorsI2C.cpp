@@ -37,6 +37,21 @@ char * WeatherSensorsI2C::GetWindDirection(void) {
 }
 
 /**********************************************************
+ * GetWindDirectionDegrees
+ *  Gets the current direction (in degrees) from the sensor.
+ *
+ * @return int - The direction in degrees.
+ **********************************************************/
+uint16_t WeatherSensorsI2C::GetWindDirectionDegrees(void) {
+
+    int direction;
+
+    direction = (uint16_t)readSensor(eWindDegCmd);
+
+    return direction;
+}
+
+/**********************************************************
  * GetSpeedMPH
  *  Gets the current wind speed from the sensor.
  *

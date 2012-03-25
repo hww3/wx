@@ -11,6 +11,7 @@ strftime('%s', strftime('%Y-%m-%d %H:00', updated)) +  (strftime('%M', updated)/
 	avg(humidity) as humidity, 
 	max(rainfall) as rainfall
 FROM observations 
+
 WHERE 
     location=&form.location; 
   AND 

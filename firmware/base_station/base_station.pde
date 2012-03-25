@@ -28,14 +28,14 @@ static byte* bufPtr;
  char winddira; 
  char winddirb; word luxa; word luxb; word luxc;} payload;
  */
-
+#if 0
 struct payload {
                 char cookiea;
                 char cookieb;
                 char cookiec;
                 char cookied;
                 uint8_t station_id;
-                int16_t uptime; 
+                uint16_t uptime; 
                 int16_t temp; 
                 int32_t pres; 
                 float relhx; 
@@ -43,12 +43,37 @@ struct payload {
                 float rainfall; 
                 float windspeed; 
                 float maxwindspeed; 
+                int winddir;
                 char winddira; 
                 char winddirb; 
                 word luxa; 
                 word luxb; 
                 word luxc;
               };
+ #endif 
+
+ 
+  struct payload {      char cookiea;
+                char cookieb;
+                char cookiec;
+                char cookied;
+                uint8_t station_id;
+                uint16_t uptime; 
+                int16_t temp; 
+                int32_t pres;  
+                float relhx; 
+                float tempb; 
+                float rainfall; 
+                float windspeed;
+                float maxwindspeed; 
+                uint16_t winddir;
+                char winddira; 
+                char winddirb; 
+                word luxa; 
+                word luxb; 
+                word luxc;
+              } ;
+ 
 
 typedef struct payload wx_data;
 
@@ -85,7 +110,7 @@ void wdt_init(void)
 */
 void setup() {
  Serial.begin(57600);
- Serial.println("\n[bmp085recv]\n");
+ Serial.println("\n[wx_base_station]\n");
  
  rf12_initialize(30, RF12_915MHZ, 5);
    
@@ -119,8 +144,7 @@ void loop() {
 //return; 
  if(rf12_recvDone() && rf12_crc == 0)
    if(rf12_len != sizeof(wx_data)) 
-// Serial.println("have packet!\n");
-     return;
+     Serial.println("have non-wx packet!\n");
    else
    {
      wx_data * data = (wx_data *) rf12_data;
@@ -145,9 +169,12 @@ void loop() {
      Serial.print(" / ");
      Serial.print(data->windspeed);
      Serial.print(" / ");
+     Serial.print(data->winddir);
+     Serial.print(" (");
      Serial.print(data->winddira);
 //if(data->winddirb)
      Serial.print(data->winddirb);
+     Serial.print(") ");
      Serial.print(data->maxwindspeed);
      Serial.print(" / ");
      Serial.print(data->luxa);
