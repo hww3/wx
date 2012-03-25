@@ -35,6 +35,7 @@
 #define SENSE_MAX_WINDSPEED 0x05
 #define SENSE_DIRECTION 0x02
 #define SENSE_RAINFALL  0x03
+#define SENSE_DEGREES 0x07
 #define SENSE_RESET     0x04
 #define SENSE_RESTART   0x06
 
@@ -283,25 +284,41 @@ int16_t calcWindSpeed()
   return t;
 }
 
-int16_t calcWindDir()
+uint16_t getWindDirReading()
 {
-  int16_t windDirX;
-
   delay(10);
   power_adc_enable();
   
   analogReference(EXTERNAL);
   digitalWrite(4, HIGH);
   delay(5);
-  int windDir = analogRead(0);
+  uint16_t windDir = analogRead(0);
   digitalWrite(4, LOW); 
 
   power_adc_disable();
+  return windDir;
+}
+
+uint16_t calcWindDirDegrees()
+{
+  uint16_t windDirX;
  
- if(windDir >= 959)
+  windDirX = getWindDirReading();
+  
+  windDirX = (uint16_t)(windDirX/2.84);
+  
+  return windDirX;
+  
+}
+uint16_t calcWindDir()
+{
+  uint16_t windDirX;
+ 
+ windDirX = getWindDirReading();
+ if(windDirX >= 959)
    windDirX = 0;
  else
-   windDirX = (windDir+(64))/(128);
+   windDirX = (windDirX+(64))/(128);
    
  return windDirX;
 }
@@ -331,7 +348,11 @@ void requestEvent()
    // reset wind trigger period if more than 5 seconds since last interrupt
  if((millis() - w_last_interrupt_time) > 2000) wind_interval = 0;
 
-  if(commandToRespond ==  SENSE_DIRECTION)
+  if(commandToRespond ==  SENSE_DEGREES)
+  {
+    sendBytes(calcWindDirDegrees());
+  }
+ else if(commandToRespond ==  SENSE_DIRECTION)
   {
     sendBytes(calcWindDir());
   }
@@ -363,7 +384,7 @@ void requestEvent()
   }
   else
   {
-    sendBytes(0xffff);
+    sendBytes(0xfff3);
   }
   commandToRespond = 0;
 }
