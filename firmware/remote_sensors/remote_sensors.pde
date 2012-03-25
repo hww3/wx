@@ -6,6 +6,7 @@
 #include <PortsBMP085.h>
 #include <Wire.h>
 #include <LibHumidity.h>  
+#include <avr/wdt.h>
 
 // define this if you have a set of davis wind and rain sensors attached.
 #define HAVE_WIND_RAIN 1
@@ -101,6 +102,8 @@ void setup()
   Serial.print("[station id ");
   Serial.print((int)id);
   Serial.println("]");
+
+  wdt_enable(WDTO_8S);
 } 
 
 uint8_t get_id()
@@ -166,7 +169,7 @@ void loop()
   {
 
 //rf12_recvDone();
-  uptime = millis()/5800;
+  uptime = millis()/60000;
     
   struct {      char cookiea;
                 char cookieb;
@@ -181,6 +184,7 @@ void loop()
                 float rainfall; 
                 float windspeed;
                 float maxwindspeed; 
+                uint16_t winddir;
                 char winddira; 
                 char winddirb; 
                 word luxa; 
@@ -245,9 +249,12 @@ Serial.print("X ");
   payload.rainfall = ws.GetRainfallInches();
   payload.windspeed = ws.GetSpeedMPH();
   payload.maxwindspeed = ws.GetMaxSpeedMPH();
+  uint16_t  degrees = ws.GetWindDirectionDegrees();
   char * dir = ws.GetWindDirection();
-  
+  ws.ResetCounters();
   payload.winddira = dir[0];
+
+  payload.winddir = degrees;
 
   if(dir[1])
     payload.winddirb = dir[1];
@@ -275,10 +282,12 @@ Serial.print("X ");
   Serial.print(payload.rainfall);
   Serial.print(" / ");
   Serial.print(payload.windspeed);
-  Serial.print(' ');
+  Serial.print(" ");
+  Serial.print(payload.winddir);
+  Serial.print(" (");
   Serial.print(payload.winddira);
   Serial.print(payload.winddirb);
-  Serial.print(' ');
+  Serial.print(") ");
   Serial.print(payload.maxwindspeed);
   Serial.print(" / ");
   Serial.print(payload.luxa);
@@ -294,20 +303,24 @@ Serial.print("X ");
     if(rf12_canSend())
     {
       rf12_onOff(true);
- //     Serial.println("sending");
+//      Serial.println("sending");
       rf12_sendStart(0, &payload, sizeof payload);
       rf12_sendWait(1);
       rf12_onOff(false);
- //     Serial.println("Sent");
+//      Serial.println("Sent");
       break;
     }
   //rf12_easySend(&payload, sizeof(payload));
   }
   
+wdt_reset();
+ // wdt_disable();
 #ifdef DEBUG
-  delay(1000);
+  delay(5000);
 #else
-    Sleepy::loseSomeTime(10000);
+delay(5000);
+wdt_reset();
+//    Sleepy::loseSomeTime(5000);
 #endif /* DEBUG */ 
   }
 }
