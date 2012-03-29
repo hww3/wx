@@ -13,7 +13,7 @@ import ADT.Struct;
   Item windspeed = Float();
   Item maxwindspeed = Float();
   Item winddegrees = lWord();
-//  Item winddir = Chars(2);
+  Item winddir = Chars(2);
   Item luxa = lWord();
   Item luxb = lWord();
   Item luxc = lWord();
@@ -61,6 +61,12 @@ void insert(Sql.Sql db, string table)
     "VALUES(DATETIME('now'), :station_id, :uptime, :temp, :pres, :relhx, "
     ":tempb, :rainfall, :windspeed, :winddegrees, :maxwindspeed, :luxa, "
     ":luxb, :luxc)", v);
+
+  werror("res: %O\n", Public.Tools.RRDtool.rrd_update(3, ({"update", "station_" + this->station_id + ".rrd",
+    sprintf("N:%f:%d:%f:%f:%f:%f:%d:%f",this->temp/10.0,this->pres,this->relhx,this->tempb,
+      this->rainfall,this->windspeed,this->winddegrees,this->maxwindspeed)
+  })));
+
 }
 // little endian word
 class Float
