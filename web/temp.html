@@ -17,6 +17,7 @@
 
     <script type="text/javascript">
       dojo.require("dojox.charting.Chart2D");
+      dojo.require("dojox.charting.action2d.Tooltip");
       dojo.require("dojox.data.CsvStore");
       dojo.require("dojox.charting.DataSeries");
       dojo.require("dojox.charting.themes.Tom");
@@ -43,6 +44,7 @@ title: "Time",
  chart1.addAxis("y", {vertical: true, title: units,  titleFont: "normal normal normal 12pt Arial", titleFontColor: "gray" });
  var series = new dojox.charting.DataSeries(source, {query: {updated: "*"}}, {x: "updated", y:field});
  chart1.addSeries(field, series);
+ var x  = new dojox.charting.action2d.Tooltip(chart1,series);
  return chart1;	
 }
 

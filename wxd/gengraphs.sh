@@ -25,12 +25,13 @@ DEF:winddir=station_3.rrd:winddir:AVERAGE:start=now-24h \
 LINE1:winddir#0000FF \
 
 rrdtool graph /c/media/pres.png --width 700 --height 268 \
--v "barometric pressure (mbar)" \
+-v "barometric pressure (inHg)" \
 DEF:pres=station_3.rrd:pressure:AVERAGE:start=now-24h \
-CDEF:mbpres=pres,100,/ \
+CDEF:mbpres=pres,100,/,0.02953,* \
 LINE1:mbpres#FF00FF \
 
 rrdtool graph /c/media/rainfall.png --width 700 --height 268 \
--v "rainfall" \
-DEF:rf=station_3.rrd:rainfall:MAX:start=now-24h \
-LINE1:rf#FFFF00 \
+-v "daily rainfall, inches" \
+DEF:rf=station_3.rrd:rainfall:AVERAGE:step=86400:start=midnight-30d:end=-1d \
+CDEF:rfa=rf,86400,* \
+LINE1:rfa#00FF00 \
