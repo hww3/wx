@@ -1,6 +1,6 @@
 date,updated,rainfall,temperature,pressure,humidity
 <sqloutput                                                                                                                    
-query="SELECT rowid,updated,strftime('%s',updated)*1000 as tsupdated,
+query="SELECT rowid,updated,strftime('%s',updated) as tsupdated,
 avg(temperature) as temperature,avg(pressure) as pressure,
 avg(humidity) as humidity, max(rainfall) as rainfall
 FROM observations 
