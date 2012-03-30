@@ -55,7 +55,7 @@ void create_rrd(int station_id)
     (["name": "pressure", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"]),
     (["name": "relhx", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"]),
     (["name": "tempb", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"]),
-    (["name": "rainfall", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"]),
+    (["name": "rainfall", "DST": "ABSOLUTE", "heartbeat": 600, "min": "U", "max": "U"]),
     (["name": "windspeed", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"]),
     (["name": "winddir", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"]),
     (["name": "windspeedmax", "DST": "GAUGE", "heartbeat": 600, "min": "U", "max": "U"])
@@ -65,6 +65,8 @@ void create_rrd(int station_id)
     (["CF": "AVERAGE", "xff": 0.5, "step": 6, "rows": 60*24]), /* 1 minute for an day */
     (["CF": "AVERAGE", "xff": 0.5, "step": 6*5, "rows": 12*24*30]), /* 5 minutes for 30 days */
     (["CF": "AVERAGE", "xff": 0.5, "step": 6*30, "rows": 2*24*365*5]), /* 30 minutes for 5 years */
+    (["CF": "MAX", "xff": 0.5, "step": 6*60*24, "rows": 365*5]), /* daily for 5 years */
+    (["CF": "MIN", "xff": 0.5, "step": 6*60*24, "rows": 365*5]), /* daily for 5 years */
     (["CF": "LAST", "xff": 0.5, "step": 6, "rows": 60*24]), /* 1 minute for an day */
     (["CF": "MIN", "xff": 0.5, "step": 6*5, "rows": 12*24*30]), /* 5 minutes for 30 days */
     (["CF": "MAX", "xff": 0.5, "step": 6*5, "rows": 12*24*30]), /* 5 minutes for 30 days */

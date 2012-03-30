@@ -29,3 +29,8 @@ rrdtool graph /c/media/pres.png --width 700 --height 268 \
 DEF:pres=station_3.rrd:pressure:AVERAGE:start=now-24h \
 CDEF:mbpres=pres,100,/ \
 LINE1:mbpres#FF00FF \
+
+rrdtool graph /c/media/rainfall.png --width 700 --height 268 \
+-v "rainfall" \
+DEF:rf=station_3.rrd:rainfall:MAX:start=now-24h \
+LINE1:rf#FFFF00 \
