@@ -1,10 +1,11 @@
-date,updated,rainfall,temperature,pressure,humidity
+date,updated,rainfall,temperature,pressure,humidity,windspeed,wind_gusts
 <sqloutput                                                                                                                    
 query="SELECT rowid,updated,strftime('%s',updated) as tsupdated,
 avg(temperature) as temperature,avg(pressure) as pressure,
-avg(humidity) as humidity, max(rainfall) as rainfall
+avg(humidity) as humidity, max(rainfall) as rainfall,
+avg(windspeed) as windspeed, max(wind_gusts) as wind_gusts
 FROM observations 
 WHERE updated > DATETIME('now', '-1 day') 
 GROUP BY strftime('%Y%m%d%H0', updated) + strftime('%M', updated)/5 
-ORDER BY updated asc" quote="#">#updated#,#tsupdated#,#rainfall#,#temperature#,#pressure#,#humidity#
+ORDER BY updated asc" quote="#">#updated#,#tsupdated#,#rainfall#,#temperature#,#pressure#,#humidity#,#windspeed#,#wind_gusts#
 </sqloutput>                                      

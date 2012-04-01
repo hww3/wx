@@ -85,6 +85,12 @@ dojo.addOnLoad(function(){
 
     var dstore = new dojox.data.CsvStore({identifier: "updated", url: "/24aggdata.html"});
 
+    var chart5 = makeChart('windchart', dstore, "windspeed", "Wind Speed (24 Hour)", "MPH");
+
+ var series = new dojox.charting.DataSeries(dstore, {query: {updated: "*"}}, {x: "updated", y:"wind_gusts"});
+ chart5.addSeries("wind_gusts", series);
+ var x  = new dojox.charting.action2d.Tooltip(chart5,series);
+
     var chart4 = makeChart('rainchart', dstore, "rainfall", "Rainfall Total (24 Hour)", "Inches");
     var chart3 = makeChart('hxchart', dstore, "humidity", "Relative Humidity (24 Hour)", "Percent");
     var chart2 = makeChart('tempchart', dstore, "temperature", "Temperature (24 Hour)", "Degrees Celsius");
@@ -94,12 +100,14 @@ dojo.addOnLoad(function(){
     chart2.render();
     chart3.render();
     chart4.render();
+    chart5.render();
 });
 </script>
     <div id="tempchart" style="width: 850px; height: 300px;"></div>
     <div id="preschart" style="width: 850px; height: 300px;"></div>
     <div id="hxchart" style="width: 850px; height: 300px;"></div>
     <div id="rainchart" style="width: 850px; height: 300px;"></div>
+    <div id="windchart" style="width: 850px; height: 300px;"></div>
 <pre>
 </pre>
 </body>
